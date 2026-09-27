@@ -215,6 +215,40 @@ export const SCENARIOS = {
   'nav-off'(F) {
     return { now: '2026-09-27T12:00:00Z', states: realStates(F), cards: [{ config: { competitions: FOUR, navigation: false } }] };
   },
+  'nav-empty-list'(F) {
+    // Integration 0.4.0 before the season list is known: `matchdays: []` -> no navigation.
+    const states = realStates(F);
+    Object.values(states).forEach((st) => {
+      if (st.attributes.matchdays) st.attributes.matchdays = [];
+    });
+    return { now: '2026-09-27T12:00:00Z', states, cards: [{ config: { competitions: FOUR } }] };
+  },
+  'nav-pokal-past'(F) {
+    // DFB-Pokal in October: the 2nd round is current, the 1st round is browsed. As the
+    // integration sends it: summary fields empty, but `pso` from the scoreboard (floats in
+    // Python, 2.0 -> 2 in JSON.parse); the details bring substitutions, stats and line-ups.
+    const states = realStates(F);
+    const st = states['sensor.matchday_dfb_pokal_spieltag'];
+    const round1 = st.attributes.matches;
+    const round2 = F.get_matchday['dfb|2'];
+    Object.assign(st.attributes, { matchday: 2, matches: clone(round2.matches) });
+    st.state = round2.name;
+    const responses = {
+      'dfb|1': {
+        matches: round1.map((m) => Object.assign(clone(m), { substitutions: [], stats: null, lineups: null, ht_score: null })),
+      },
+    };
+    const details = {};
+    round1.forEach((m) => {
+      details[m.matchID] = { match_id: m.matchID, substitutions: m.substitutions, stats: m.stats, lineups: m.lineups, ht_score: m.ht_score, pso: m.pso };
+    });
+    return {
+      now: '2026-10-20T12:00:00Z',
+      states,
+      mock: { responses, details },
+      cards: [{ config: { competitions: FOUR, default_competition: 'DFB-Pokal' } }],
+    };
+  },
   legacy(F) {
     // Integration 0.3.0: no `matchdays` attribute, no actions -> no navigation, no error.
     return { now: '2026-09-27T12:00:00Z', states: realStates(F, false), cards: [{ config: { competitions: FOUR } }] };

@@ -28,7 +28,9 @@ through all matchdays of the season.
   from the integration and kept in memory (finished ones for good, others for 15 minutes); the details of a match
   (substitutions, stats, line-ups) load when it is opened. The table stays the current one and says so ("as of
   4. Spieltag") next to another matchday. Keyboard: arrow keys on the heading, arrow keys/Home/End/Enter/Esc in the
-  list. Needs Matchday **0.4.0** or later; with older versions the card works as before without navigation.
+  list. Cup rounds that are not drawn yet can be selected and say so. Needs Matchday **0.4.0** or later; with older
+  versions (or while the integration does not know the season's rounds yet) the card works as before without
+  navigation.
 - **Competition chips:** switch between competitions inside the card (the choice is remembered per browser), with a
   live dot on every competition that has a running match.
 - **Team mode:** the next and last matches of one team across all configured competitions.

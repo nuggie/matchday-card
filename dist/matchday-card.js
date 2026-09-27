@@ -82,6 +82,7 @@
       unavailable: 'Daten momentan nicht verfügbar.',
       tableUnavailable: 'Tabelle momentan nicht verfügbar.',
       noMatches: 'Keine Spiele.',
+      noFixtures: 'Noch keine Ansetzungen.',
       noTeamMatches: 'Keine Spiele von {team} gefunden.',
       possession: 'Ballbesitz',
       shots: 'Schüsse',
@@ -139,6 +140,7 @@
       unavailable: 'Data currently unavailable.',
       tableUnavailable: 'Table currently unavailable.',
       noMatches: 'No matches.',
+      noFixtures: 'No fixtures yet.',
       noTeamMatches: 'No matches of {team} found.',
       possession: 'Possession',
       shots: 'Shots',
@@ -2054,7 +2056,10 @@
       this._code = data.code;
       this._other = !!data.other;
       if (!matches.length) {
-        const text = this._teamMode() ? base.t('noTeamMatches', { team: this._config.team }) : base.t('noMatches');
+        // Another matchday without matches: a cup round that is not drawn yet.
+        const text = this._teamMode()
+          ? base.t('noTeamMatches', { team: this._config.team })
+          : base.t(this._other ? 'noFixtures' : 'noMatches');
         this._el.list.innerHTML = '<div class="block msg">' + escHtml(text) + '</div>';
         return;
       }

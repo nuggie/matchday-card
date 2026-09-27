@@ -68,6 +68,8 @@ const SHOTS = [
   { name: 'nav-pokal-mobile', scenario: 'pokal', viewport: PHONE, w: 'full', steps: [NEXT, ['sleep', 900]] },
   { name: 'nav-pokal-empty-mobile', scenario: 'pokal', viewport: PHONE, w: 'full', steps: [NEXT, ['sleep', 900], NEXT, ['sleep', 900]] },
   { name: 'nav-en-mobile', scenario: 'overview', viewport: PHONE, w: 'full', lang: 'en', steps: md3('83177') },
+  { name: 'nav-pokal-past-mobile', scenario: 'nav-pokal-past', viewport: PHONE, w: 'full', steps: [PREV, ['wait', '.row[data-id="81849"]'], ['click', '.row[data-id="81849"]'], ['wait', '.zone.open .lu-head'], ['sleep', 500]] },
+  { name: 'nav-empty-list-mobile', scenario: 'nav-empty-list', viewport: PHONE, w: 'full' },
   { name: 'legacy-mobile', scenario: 'legacy', viewport: PHONE, w: 'full' },
 ];
 

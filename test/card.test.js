@@ -587,3 +587,44 @@ test('normalizeConfig: navigation defaults to on', () => {
   assert.throws(() => card.normalizeConfig({ entity: 'sensor.a', navigation: 'no' }), /"navigation" must be true or false/);
   Object.keys(card.STRINGS.en).forEach((k) => assert.ok(k in card.STRINGS.de, k));
 });
+
+// --- integration 0.4.0 as delivered (ha-matchday 0af50b6) ----------------------------------
+
+test('a cup round without fixtures: null kick-offs, bare answer, still selectable', () => {
+  const list = card.matchdayList({ matchdays: matchdays.dfb });
+  const r16 = list.find((x) => x.name === 'Achtelfinale');
+  assert.equal(r16.first_kickoff, null);
+  const nav = card.navState(list, 2, r16.matchday);
+  assert.equal(nav.name, 'Achtelfinale');
+  assert.match(card.pickerHtml(list, nav, ctx()), /data-md="3" aria-selected="true"><span class="pk-name">Achtelfinale<\/span><span class="pk-date"><\/span>/);
+  const answer = card.mapMatchdayResponse({ response: { name: 'Achtelfinale', matches: [], is_current: false } }, 3);
+  assert.deepEqual([answer.matchday, answer.name, answer.matches, answer.isCurrent], [3, 'Achtelfinale', [], false]);
+  assert.equal(card.cacheTtl(answer.matches), card.CACHE_TTL_OPEN, 'asked again after 15 minutes (draw)');
+  assert.equal(card.STRINGS.de.noFixtures, 'Noch keine Ansetzungen.');
+});
+
+test('matchdays: [] while the season list is unknown means no navigation', () => {
+  assert.equal(card.matchdayList({ matchdays: [], matchday: 4 }), null);
+});
+
+test('pso of past cup rounds: shown as integers, also when it only comes with the details', () => {
+  const m = JSON.parse(JSON.stringify(byId(pokal, 81849)));
+  Object.assign(m, { substitutions: [], stats: null, lineups: null, ht_score: null });
+  // Python floats: 2.0 arrives as 2 from JSON.parse; strings like "4.0" are rounded too.
+  m.pso = JSON.parse('{"team1": 2.0, "team2": 4.0, "winner": "team2"}');
+  assert.match(card.centerHtml(m, ctx()), /n\.E\. 2:4/);
+  m.pso = { team1: '4.0', team2: 3.0, winner: 'team1' };
+  m.scorers = m.scorers.filter((s) => !card.isShootoutKick(s));
+  assert.match(card.centerHtml(m, ctx()), /n\.E\. 4:3/);
+  assert.doesNotMatch(card.centerHtml(m, ctx()), /4\.0/);
+  const withoutPso = Object.assign({}, m, { pso: null });
+  const d = card.mapDetailsResponse({ response: { match_id: 81849, substitutions: [], stats: null, lineups: null, ht_score: '0:1', pso: { team1: 2.0, team2: 4.0, winner: 'team2' } } });
+  assert.match(card.centerHtml(card.withDetails(withoutPso, d), ctx()), /n\.E\. 2:4/);
+});
+
+test('details of a match that has not started: empty fields, no error', () => {
+  const d = card.mapDetailsResponse({ response: { match_id: 1, substitutions: [], stats: null, lineups: null, ht_score: null, pso: null } });
+  const m = recorded['bl1|5'].matches[0];
+  assert.equal(card.withDetails(m, d).status, 'pre');
+  assert.match(card.zoneContentHtml(card.withDetails(m, d), ctx({ code: 'bl1' })), /Noch keine Ereignisse/);
+});

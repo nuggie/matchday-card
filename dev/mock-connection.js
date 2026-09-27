@@ -6,6 +6,8 @@
 //   latency        ms per get_matchday call (default 600)
 //   detailsLatency ms per get_match_details call (default: latency)
 //   failOnce       keys whose first call fails: "<competition>|<matchday>" or "details:<matchID>"
+//   responses      extra get_matchday answers by "<competition>|<matchday>" (win over the fixtures)
+//   details        extra get_match_details answers by match id
 //
 // Matchdays without a recorded answer (fixtures/get_matchday.json) are synthesized from the
 // sensor's current matches, moved to the matchday's first kick-off (pairings are not real).
@@ -37,8 +39,8 @@ function synthesize(st, entry, nowMs) {
 }
 
 export function createConnection({ fixtures, getStates, options = {} }) {
-  const recorded = fixtures['get_matchday'] || {};
-  const details = fixtures['get_match_details'] || {};
+  const recorded = Object.assign({}, fixtures['get_matchday'], options.responses);
+  const details = Object.assign({}, fixtures['get_match_details'], options.details);
   const latency = options.latency == null ? 600 : options.latency;
   const detailsLatency = options.detailsLatency == null ? latency : options.detailsLatency;
   const failOnce = new Set(options.failOnce || []);
@@ -47,20 +49,27 @@ export function createConnection({ fixtures, getStates, options = {} }) {
   async function getMatchday(st, sd) {
     const a = st.attributes;
     const code = a.competition;
-    const n = Number(sd.matchday);
+    // As the integration: without `matchday` only the sensor's season has a default.
+    if (sd.matchday == null && sd.season != null && sd.season !== a.season) {
+      throw haError('service_validation_error', 'A matchday is required for season ' + sd.season + '.');
+    }
+    const n = sd.matchday == null ? a.matchday : Number(sd.matchday);
     await sleep(latency);
     const key = code + '|' + n;
     if (failOnce.delete(key)) throw haError('home_assistant_error', 'OpenLigaDB: Zeitüberschreitung beim Abruf von ' + key);
     const entry = (a.matchdays || []).find((x) => x.matchday === n);
     if (!entry) throw haError('service_validation_error', 'Matchday ' + n + ' does not exist in season ' + a.season + '.');
     if (sd.season != null && sd.season !== a.season) throw haError('service_validation_error', 'Only season ' + a.season + ' is available.');
-    const body = n === a.matchday ? { matches: a.matches } : recorded[key] || synthesize(st, entry, Date.now());
+    const current = n === a.matchday;
+    const body = current ? { matches: a.matches } : recorded[key] || synthesize(st, entry, Date.now());
+    // A cup round without fixtures: the integration answers with the bare minimum.
+    if (!current && !body.matches.length) return { name: entry.name, matches: [], is_current: false };
     return {
       competition: code,
       season: a.season,
       matchday: n,
       name: entry.name,
-      is_current: n === a.matchday,
+      is_current: current,
       matches: clone(body.matches),
     };
   }
@@ -69,7 +78,8 @@ export function createConnection({ fixtures, getStates, options = {} }) {
     await sleep(detailsLatency);
     if (failOnce.delete('details:' + sd.match_id)) throw haError('home_assistant_error', 'ESPN: summary ' + sd.match_id + ' unavailable (HTTP 503)');
     const d = details[String(sd.match_id)];
-    return d ? clone(d) : { match_id: sd.match_id, substitutions: [], stats: null, lineups: null, ht_score: null };
+    // Matches that did not start yet: empty fields, no error.
+    return d ? clone(d) : { match_id: sd.match_id, substitutions: [], stats: null, lineups: null, ht_score: null, pso: null };
   }
 
   return {
