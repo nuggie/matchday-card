@@ -12,3 +12,6 @@ jobs:
       - uses: hacs/action@main
         with:
           category: plugin
+          # While the repository is private the action cannot read hacs.json ("invalid hacs.json",
+          # see hacs/integration#5497). The file is valid. Remove this line when going public.
+          ignore: hacsjson
