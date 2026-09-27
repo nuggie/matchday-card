@@ -1,0 +1,682 @@
+{
+ "bl1": [
+  {
+   "matchday": 1,
+   "name": "1. Spieltag",
+   "first_kickoff": "2026-08-28T18:30:00Z",
+   "last_kickoff": "2026-08-30T15:30:00Z"
+  },
+  {
+   "matchday": 2,
+   "name": "2. Spieltag",
+   "first_kickoff": "2026-09-04T18:30:00Z",
+   "last_kickoff": "2026-09-06T15:30:00Z"
+  },
+  {
+   "matchday": 3,
+   "name": "3. Spieltag",
+   "first_kickoff": "2026-09-11T18:30:00Z",
+   "last_kickoff": "2026-09-13T15:30:00Z"
+  },
+  {
+   "matchday": 4,
+   "name": "4. Spieltag",
+   "first_kickoff": "2026-09-18T18:30:00Z",
+   "last_kickoff": "2026-09-20T17:30:00Z"
+  },
+  {
+   "matchday": 5,
+   "name": "5. Spieltag",
+   "first_kickoff": "2026-10-09T18:30:00Z",
+   "last_kickoff": "2026-10-11T15:30:00Z"
+  },
+  {
+   "matchday": 6,
+   "name": "6. Spieltag",
+   "first_kickoff": "2026-10-16T18:30:00Z",
+   "last_kickoff": "2026-10-18T15:30:00Z"
+  },
+  {
+   "matchday": 7,
+   "name": "7. Spieltag",
+   "first_kickoff": "2026-10-23T18:30:00Z",
+   "last_kickoff": "2026-10-25T16:30:00Z"
+  },
+  {
+   "matchday": 8,
+   "name": "8. Spieltag",
+   "first_kickoff": "2026-10-30T19:30:00Z",
+   "last_kickoff": "2026-11-01T16:30:00Z"
+  },
+  {
+   "matchday": 9,
+   "name": "9. Spieltag",
+   "first_kickoff": "2026-11-06T19:30:00Z",
+   "last_kickoff": "2026-11-08T18:30:00Z"
+  },
+  {
+   "matchday": 10,
+   "name": "10. Spieltag",
+   "first_kickoff": "2026-11-20T19:30:00Z",
+   "last_kickoff": "2026-11-22T16:30:00Z"
+  },
+  {
+   "matchday": 11,
+   "name": "11. Spieltag",
+   "first_kickoff": "2026-11-27T19:30:00Z",
+   "last_kickoff": "2026-11-29T18:30:00Z"
+  },
+  {
+   "matchday": 12,
+   "name": "12. Spieltag",
+   "first_kickoff": "2026-12-05T14:30:00Z",
+   "last_kickoff": "2026-12-05T14:30:00Z"
+  },
+  {
+   "matchday": 13,
+   "name": "13. Spieltag",
+   "first_kickoff": "2026-12-12T14:30:00Z",
+   "last_kickoff": "2026-12-12T14:30:00Z"
+  },
+  {
+   "matchday": 14,
+   "name": "14. Spieltag",
+   "first_kickoff": "2026-12-19T14:30:00Z",
+   "last_kickoff": "2026-12-19T14:30:00Z"
+  },
+  {
+   "matchday": 15,
+   "name": "15. Spieltag",
+   "first_kickoff": "2027-01-09T14:30:00Z",
+   "last_kickoff": "2027-01-09T14:30:00Z"
+  },
+  {
+   "matchday": 16,
+   "name": "16. Spieltag",
+   "first_kickoff": "2027-01-12T19:30:00Z",
+   "last_kickoff": "2027-01-12T19:30:00Z"
+  },
+  {
+   "matchday": 17,
+   "name": "17. Spieltag",
+   "first_kickoff": "2027-01-16T14:30:00Z",
+   "last_kickoff": "2027-01-16T14:30:00Z"
+  },
+  {
+   "matchday": 18,
+   "name": "18. Spieltag",
+   "first_kickoff": "2027-01-23T14:30:00Z",
+   "last_kickoff": "2027-01-23T14:30:00Z"
+  },
+  {
+   "matchday": 19,
+   "name": "19. Spieltag",
+   "first_kickoff": "2027-01-30T14:30:00Z",
+   "last_kickoff": "2027-01-30T14:30:00Z"
+  },
+  {
+   "matchday": 20,
+   "name": "20. Spieltag",
+   "first_kickoff": "2027-02-06T14:30:00Z",
+   "last_kickoff": "2027-02-06T14:30:00Z"
+  },
+  {
+   "matchday": 21,
+   "name": "21. Spieltag",
+   "first_kickoff": "2027-02-13T14:30:00Z",
+   "last_kickoff": "2027-02-13T14:30:00Z"
+  },
+  {
+   "matchday": 22,
+   "name": "22. Spieltag",
+   "first_kickoff": "2027-02-20T14:30:00Z",
+   "last_kickoff": "2027-02-20T14:30:00Z"
+  },
+  {
+   "matchday": 23,
+   "name": "23. Spieltag",
+   "first_kickoff": "2027-02-27T14:30:00Z",
+   "last_kickoff": "2027-02-27T14:30:00Z"
+  },
+  {
+   "matchday": 24,
+   "name": "24. Spieltag",
+   "first_kickoff": "2027-03-02T19:30:00Z",
+   "last_kickoff": "2027-03-02T19:30:00Z"
+  },
+  {
+   "matchday": 25,
+   "name": "25. Spieltag",
+   "first_kickoff": "2027-03-06T14:30:00Z",
+   "last_kickoff": "2027-03-06T14:30:00Z"
+  },
+  {
+   "matchday": 26,
+   "name": "26. Spieltag",
+   "first_kickoff": "2027-03-13T14:30:00Z",
+   "last_kickoff": "2027-03-13T14:30:00Z"
+  },
+  {
+   "matchday": 27,
+   "name": "27. Spieltag",
+   "first_kickoff": "2027-03-20T14:30:00Z",
+   "last_kickoff": "2027-03-20T14:30:00Z"
+  },
+  {
+   "matchday": 28,
+   "name": "28. Spieltag",
+   "first_kickoff": "2027-04-03T13:30:00Z",
+   "last_kickoff": "2027-04-03T13:30:00Z"
+  },
+  {
+   "matchday": 29,
+   "name": "29. Spieltag",
+   "first_kickoff": "2027-04-10T13:30:00Z",
+   "last_kickoff": "2027-04-10T13:30:00Z"
+  },
+  {
+   "matchday": 30,
+   "name": "30. Spieltag",
+   "first_kickoff": "2027-04-17T13:30:00Z",
+   "last_kickoff": "2027-04-17T13:30:00Z"
+  },
+  {
+   "matchday": 31,
+   "name": "31. Spieltag",
+   "first_kickoff": "2027-04-24T13:30:00Z",
+   "last_kickoff": "2027-04-24T13:30:00Z"
+  },
+  {
+   "matchday": 32,
+   "name": "32. Spieltag",
+   "first_kickoff": "2027-05-08T13:30:00Z",
+   "last_kickoff": "2027-05-08T13:30:00Z"
+  },
+  {
+   "matchday": 33,
+   "name": "33. Spieltag",
+   "first_kickoff": "2027-05-15T13:30:00Z",
+   "last_kickoff": "2027-05-15T13:30:00Z"
+  },
+  {
+   "matchday": 34,
+   "name": "34. Spieltag",
+   "first_kickoff": "2027-05-22T13:30:00Z",
+   "last_kickoff": "2027-05-22T13:30:00Z"
+  }
+ ],
+ "bl2": [
+  {
+   "matchday": 1,
+   "name": "1. Spieltag",
+   "first_kickoff": "2026-08-07T18:30:00Z",
+   "last_kickoff": "2026-08-09T11:30:00Z"
+  },
+  {
+   "matchday": 2,
+   "name": "2. Spieltag",
+   "first_kickoff": "2026-08-14T16:30:00Z",
+   "last_kickoff": "2026-08-16T11:30:00Z"
+  },
+  {
+   "matchday": 3,
+   "name": "3. Spieltag",
+   "first_kickoff": "2026-08-28T16:30:00Z",
+   "last_kickoff": "2026-08-30T11:30:00Z"
+  },
+  {
+   "matchday": 4,
+   "name": "4. Spieltag",
+   "first_kickoff": "2026-09-04T16:30:00Z",
+   "last_kickoff": "2026-09-06T11:30:00Z"
+  },
+  {
+   "matchday": 5,
+   "name": "5. Spieltag",
+   "first_kickoff": "2026-09-11T16:30:00Z",
+   "last_kickoff": "2026-09-13T11:30:00Z"
+  },
+  {
+   "matchday": 6,
+   "name": "6. Spieltag",
+   "first_kickoff": "2026-09-18T16:30:00Z",
+   "last_kickoff": "2026-09-20T11:30:00Z"
+  },
+  {
+   "matchday": 7,
+   "name": "7. Spieltag",
+   "first_kickoff": "2026-10-09T16:30:00Z",
+   "last_kickoff": "2026-10-11T11:30:00Z"
+  },
+  {
+   "matchday": 8,
+   "name": "8. Spieltag",
+   "first_kickoff": "2026-10-16T16:30:00Z",
+   "last_kickoff": "2026-10-18T11:30:00Z"
+  },
+  {
+   "matchday": 9,
+   "name": "9. Spieltag",
+   "first_kickoff": "2026-10-23T16:30:00Z",
+   "last_kickoff": "2026-10-25T12:30:00Z"
+  },
+  {
+   "matchday": 10,
+   "name": "10. Spieltag",
+   "first_kickoff": "2026-10-30T17:30:00Z",
+   "last_kickoff": "2026-11-01T12:30:00Z"
+  },
+  {
+   "matchday": 11,
+   "name": "11. Spieltag",
+   "first_kickoff": "2026-11-06T17:30:00Z",
+   "last_kickoff": "2026-11-08T12:30:00Z"
+  },
+  {
+   "matchday": 12,
+   "name": "12. Spieltag",
+   "first_kickoff": "2026-11-20T17:30:00Z",
+   "last_kickoff": "2026-11-22T12:30:00Z"
+  },
+  {
+   "matchday": 13,
+   "name": "13. Spieltag",
+   "first_kickoff": "2026-11-27T17:30:00Z",
+   "last_kickoff": "2026-11-29T12:30:00Z"
+  },
+  {
+   "matchday": 14,
+   "name": "14. Spieltag",
+   "first_kickoff": "2026-12-06T12:30:00Z",
+   "last_kickoff": "2026-12-06T12:30:00Z"
+  },
+  {
+   "matchday": 15,
+   "name": "15. Spieltag",
+   "first_kickoff": "2026-12-13T12:30:00Z",
+   "last_kickoff": "2026-12-13T12:30:00Z"
+  },
+  {
+   "matchday": 16,
+   "name": "16. Spieltag",
+   "first_kickoff": "2026-12-20T12:30:00Z",
+   "last_kickoff": "2026-12-20T12:30:00Z"
+  },
+  {
+   "matchday": 17,
+   "name": "17. Spieltag",
+   "first_kickoff": "2027-01-17T12:30:00Z",
+   "last_kickoff": "2027-01-17T12:30:00Z"
+  },
+  {
+   "matchday": 18,
+   "name": "18. Spieltag",
+   "first_kickoff": "2027-01-24T12:30:00Z",
+   "last_kickoff": "2027-01-24T12:30:00Z"
+  },
+  {
+   "matchday": 19,
+   "name": "19. Spieltag",
+   "first_kickoff": "2027-01-31T12:30:00Z",
+   "last_kickoff": "2027-01-31T12:30:00Z"
+  },
+  {
+   "matchday": 20,
+   "name": "20. Spieltag",
+   "first_kickoff": "2027-02-07T12:30:00Z",
+   "last_kickoff": "2027-02-07T12:30:00Z"
+  },
+  {
+   "matchday": 21,
+   "name": "21. Spieltag",
+   "first_kickoff": "2027-02-14T12:30:00Z",
+   "last_kickoff": "2027-02-14T12:30:00Z"
+  },
+  {
+   "matchday": 22,
+   "name": "22. Spieltag",
+   "first_kickoff": "2027-02-21T12:30:00Z",
+   "last_kickoff": "2027-02-21T12:30:00Z"
+  },
+  {
+   "matchday": 23,
+   "name": "23. Spieltag",
+   "first_kickoff": "2027-02-28T12:30:00Z",
+   "last_kickoff": "2027-02-28T12:30:00Z"
+  },
+  {
+   "matchday": 24,
+   "name": "24. Spieltag",
+   "first_kickoff": "2027-03-03T17:30:00Z",
+   "last_kickoff": "2027-03-03T17:30:00Z"
+  },
+  {
+   "matchday": 25,
+   "name": "25. Spieltag",
+   "first_kickoff": "2027-03-07T12:30:00Z",
+   "last_kickoff": "2027-03-07T12:30:00Z"
+  },
+  {
+   "matchday": 26,
+   "name": "26. Spieltag",
+   "first_kickoff": "2027-03-14T12:30:00Z",
+   "last_kickoff": "2027-03-14T12:30:00Z"
+  },
+  {
+   "matchday": 27,
+   "name": "27. Spieltag",
+   "first_kickoff": "2027-03-21T12:30:00Z",
+   "last_kickoff": "2027-03-21T12:30:00Z"
+  },
+  {
+   "matchday": 28,
+   "name": "28. Spieltag",
+   "first_kickoff": "2027-04-04T11:30:00Z",
+   "last_kickoff": "2027-04-04T11:30:00Z"
+  },
+  {
+   "matchday": 29,
+   "name": "29. Spieltag",
+   "first_kickoff": "2027-04-11T11:30:00Z",
+   "last_kickoff": "2027-04-11T11:30:00Z"
+  },
+  {
+   "matchday": 30,
+   "name": "30. Spieltag",
+   "first_kickoff": "2027-04-18T11:30:00Z",
+   "last_kickoff": "2027-04-18T11:30:00Z"
+  },
+  {
+   "matchday": 31,
+   "name": "31. Spieltag",
+   "first_kickoff": "2027-04-25T11:30:00Z",
+   "last_kickoff": "2027-04-25T11:30:00Z"
+  },
+  {
+   "matchday": 32,
+   "name": "32. Spieltag",
+   "first_kickoff": "2027-05-09T11:30:00Z",
+   "last_kickoff": "2027-05-09T11:30:00Z"
+  },
+  {
+   "matchday": 33,
+   "name": "33. Spieltag",
+   "first_kickoff": "2027-05-16T11:30:00Z",
+   "last_kickoff": "2027-05-16T11:30:00Z"
+  },
+  {
+   "matchday": 34,
+   "name": "34. Spieltag",
+   "first_kickoff": "2027-05-23T13:30:00Z",
+   "last_kickoff": "2027-05-23T13:30:00Z"
+  }
+ ],
+ "pl": [
+  {
+   "matchday": 1,
+   "name": "1. Spieltag",
+   "first_kickoff": "2026-08-21T19:00:00Z",
+   "last_kickoff": "2026-08-24T19:00:00Z"
+  },
+  {
+   "matchday": 2,
+   "name": "2. Spieltag",
+   "first_kickoff": "2026-08-28T19:00:00Z",
+   "last_kickoff": "2026-08-31T19:00:00Z"
+  },
+  {
+   "matchday": 3,
+   "name": "3. Spieltag",
+   "first_kickoff": "2026-09-04T19:00:00Z",
+   "last_kickoff": "2026-09-06T15:30:00Z"
+  },
+  {
+   "matchday": 4,
+   "name": "4. Spieltag",
+   "first_kickoff": "2026-09-12T14:00:00Z",
+   "last_kickoff": "2026-09-14T19:00:00Z"
+  },
+  {
+   "matchday": 5,
+   "name": "5. Spieltag",
+   "first_kickoff": "2026-09-18T19:00:00Z",
+   "last_kickoff": "2026-09-20T15:30:00Z"
+  },
+  {
+   "matchday": 6,
+   "name": "6. Spieltag",
+   "first_kickoff": "2026-10-10T11:30:00Z",
+   "last_kickoff": "2026-10-12T19:00:00Z"
+  },
+  {
+   "matchday": 7,
+   "name": "7. Spieltag",
+   "first_kickoff": "2026-10-17T11:30:00Z",
+   "last_kickoff": "2026-10-19T19:00:00Z"
+  },
+  {
+   "matchday": 8,
+   "name": "8. Spieltag",
+   "first_kickoff": "2026-10-23T19:00:00Z",
+   "last_kickoff": "2026-10-25T16:30:00Z"
+  },
+  {
+   "matchday": 9,
+   "name": "9. Spieltag",
+   "first_kickoff": "2026-10-31T12:30:00Z",
+   "last_kickoff": "2026-11-02T20:00:00Z"
+  },
+  {
+   "matchday": 10,
+   "name": "10. Spieltag",
+   "first_kickoff": "2026-11-06T20:00:00Z",
+   "last_kickoff": "2026-11-08T16:30:00Z"
+  },
+  {
+   "matchday": 11,
+   "name": "11. Spieltag",
+   "first_kickoff": "2026-11-21T12:30:00Z",
+   "last_kickoff": "2026-11-23T20:00:00Z"
+  },
+  {
+   "matchday": 12,
+   "name": "12. Spieltag",
+   "first_kickoff": "2026-11-27T20:00:00Z",
+   "last_kickoff": "2026-11-29T16:30:00Z"
+  },
+  {
+   "matchday": 13,
+   "name": "13. Spieltag",
+   "first_kickoff": "2026-12-02T20:00:00Z",
+   "last_kickoff": "2026-12-02T20:00:00Z"
+  },
+  {
+   "matchday": 14,
+   "name": "14. Spieltag",
+   "first_kickoff": "2026-12-05T15:00:00Z",
+   "last_kickoff": "2026-12-05T15:00:00Z"
+  },
+  {
+   "matchday": 15,
+   "name": "15. Spieltag",
+   "first_kickoff": "2026-12-12T15:00:00Z",
+   "last_kickoff": "2026-12-12T15:00:00Z"
+  },
+  {
+   "matchday": 16,
+   "name": "16. Spieltag",
+   "first_kickoff": "2026-12-19T15:00:00Z",
+   "last_kickoff": "2026-12-19T15:00:00Z"
+  },
+  {
+   "matchday": 17,
+   "name": "17. Spieltag",
+   "first_kickoff": "2026-12-26T12:30:00Z",
+   "last_kickoff": "2026-12-27T19:00:00Z"
+  },
+  {
+   "matchday": 18,
+   "name": "18. Spieltag",
+   "first_kickoff": "2026-12-29T19:30:00Z",
+   "last_kickoff": "2026-12-30T20:15:00Z"
+  },
+  {
+   "matchday": 19,
+   "name": "19. Spieltag",
+   "first_kickoff": "2027-01-01T20:00:00Z",
+   "last_kickoff": "2027-01-03T16:30:00Z"
+  },
+  {
+   "matchday": 20,
+   "name": "20. Spieltag",
+   "first_kickoff": "2027-01-05T19:30:00Z",
+   "last_kickoff": "2027-01-07T20:00:00Z"
+  },
+  {
+   "matchday": 21,
+   "name": "21. Spieltag",
+   "first_kickoff": "2027-01-16T15:00:00Z",
+   "last_kickoff": "2027-01-16T15:00:00Z"
+  },
+  {
+   "matchday": 22,
+   "name": "22. Spieltag",
+   "first_kickoff": "2027-01-23T15:00:00Z",
+   "last_kickoff": "2027-01-23T15:00:00Z"
+  },
+  {
+   "matchday": 23,
+   "name": "23. Spieltag",
+   "first_kickoff": "2027-01-30T15:00:00Z",
+   "last_kickoff": "2027-01-30T15:00:00Z"
+  },
+  {
+   "matchday": 24,
+   "name": "24. Spieltag",
+   "first_kickoff": "2027-02-06T15:00:00Z",
+   "last_kickoff": "2027-02-06T15:00:00Z"
+  },
+  {
+   "matchday": 25,
+   "name": "25. Spieltag",
+   "first_kickoff": "2027-02-10T20:00:00Z",
+   "last_kickoff": "2027-02-10T20:00:00Z"
+  },
+  {
+   "matchday": 26,
+   "name": "26. Spieltag",
+   "first_kickoff": "2027-02-20T15:00:00Z",
+   "last_kickoff": "2027-02-20T15:00:00Z"
+  },
+  {
+   "matchday": 27,
+   "name": "27. Spieltag",
+   "first_kickoff": "2027-02-27T15:00:00Z",
+   "last_kickoff": "2027-02-27T15:00:00Z"
+  },
+  {
+   "matchday": 28,
+   "name": "28. Spieltag",
+   "first_kickoff": "2027-03-03T20:00:00Z",
+   "last_kickoff": "2027-03-03T20:00:00Z"
+  },
+  {
+   "matchday": 29,
+   "name": "29. Spieltag",
+   "first_kickoff": "2027-03-13T15:00:00Z",
+   "last_kickoff": "2027-03-13T15:00:00Z"
+  },
+  {
+   "matchday": 30,
+   "name": "30. Spieltag",
+   "first_kickoff": "2027-03-20T15:00:00Z",
+   "last_kickoff": "2027-03-20T15:00:00Z"
+  },
+  {
+   "matchday": 31,
+   "name": "31. Spieltag",
+   "first_kickoff": "2027-04-10T14:00:00Z",
+   "last_kickoff": "2027-04-10T14:00:00Z"
+  },
+  {
+   "matchday": 32,
+   "name": "32. Spieltag",
+   "first_kickoff": "2027-04-17T14:00:00Z",
+   "last_kickoff": "2027-04-17T14:00:00Z"
+  },
+  {
+   "matchday": 33,
+   "name": "33. Spieltag",
+   "first_kickoff": "2027-04-24T14:00:00Z",
+   "last_kickoff": "2027-04-24T14:00:00Z"
+  },
+  {
+   "matchday": 34,
+   "name": "34. Spieltag",
+   "first_kickoff": "2027-05-01T14:00:00Z",
+   "last_kickoff": "2027-05-01T14:00:00Z"
+  },
+  {
+   "matchday": 35,
+   "name": "35. Spieltag",
+   "first_kickoff": "2027-05-08T14:00:00Z",
+   "last_kickoff": "2027-05-08T14:00:00Z"
+  },
+  {
+   "matchday": 36,
+   "name": "36. Spieltag",
+   "first_kickoff": "2027-05-15T14:00:00Z",
+   "last_kickoff": "2027-05-15T14:00:00Z"
+  },
+  {
+   "matchday": 37,
+   "name": "37. Spieltag",
+   "first_kickoff": "2027-05-23T14:00:00Z",
+   "last_kickoff": "2027-05-23T14:00:00Z"
+  },
+  {
+   "matchday": 38,
+   "name": "38. Spieltag",
+   "first_kickoff": "2027-05-30T15:00:00Z",
+   "last_kickoff": "2027-05-30T15:00:00Z"
+  }
+ ],
+ "dfb": [
+  {
+   "matchday": 1,
+   "name": "1. Runde",
+   "first_kickoff": "2026-08-21T16:00:00Z",
+   "last_kickoff": "2026-09-02T18:45:00Z"
+  },
+  {
+   "matchday": 2,
+   "name": "2. Runde",
+   "first_kickoff": "2026-10-27T17:00:00Z",
+   "last_kickoff": "2026-10-28T19:45:00Z"
+  },
+  {
+   "matchday": 3,
+   "name": "Achtelfinale",
+   "first_kickoff": null,
+   "last_kickoff": null
+  },
+  {
+   "matchday": 4,
+   "name": "Viertelfinale",
+   "first_kickoff": null,
+   "last_kickoff": null
+  },
+  {
+   "matchday": 5,
+   "name": "Halbfinale",
+   "first_kickoff": null,
+   "last_kickoff": null
+  },
+  {
+   "matchday": 6,
+   "name": "Endspiel",
+   "first_kickoff": null,
+   "last_kickoff": null
+  }
+ ]
+}

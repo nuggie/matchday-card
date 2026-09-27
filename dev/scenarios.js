@@ -2,6 +2,9 @@
 // Base data: real sensor attributes (fixtures/*.json, pulled from Home Assistant on 2026-09-27)
 // and the ha-matchday replay of a recorded live evening (fixtures/replay-nations-20260926.json,
 // exported at six points in time). Live states of the leagues are derived from the real data.
+// Matchday navigation (integration >= 0.4.0): the `matchdays` attribute and the answers of the
+// actions come from fixtures/matchdays.json, get_matchday.json and get_match_details.json
+// (dev/tools/make_nav_fixtures.py); dev/mock-connection.js plays the integration.
 
 export const FIXTURE_FILES = [
   'sensor.matchday_bundesliga_spieltag',
@@ -12,6 +15,9 @@ export const FIXTURE_FILES = [
   'sensor.matchday_premier_league_tabelle',
   'sensor.matchday_dfb_pokal_spieltag',
   'replay-nations-20260926',
+  'matchdays',
+  'get_matchday',
+  'get_match_details',
 ];
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -31,9 +37,14 @@ function toState(fixture) {
   };
 }
 
-function realStates(F) {
+// withMatchdays = false: sensors of an integration before 0.4.0 (no navigation).
+function realStates(F, withMatchdays = true) {
   const states = {};
-  FIXTURE_FILES.filter((f) => f.startsWith('sensor.')).forEach((id) => (states[id] = toState(F[id])));
+  FIXTURE_FILES.filter((f) => f.startsWith('sensor.')).forEach((id) => {
+    const st = (states[id] = toState(F[id]));
+    const list = F.matchdays[st.attributes.competition];
+    if (withMatchdays && list && Array.isArray(st.attributes.matches)) st.attributes.matchdays = clone(list);
+  });
   return states;
 }
 
@@ -175,6 +186,38 @@ export const SCENARIOS = {
       states: realStates(F),
       cards: [{ config: { team: 'SC Freiburg', limit: 4, competitions: FOUR } }],
     };
+  },
+  // --- matchday navigation (integration >= 0.4.0) --------------------------------------
+  // Combine with the actions in snap.mjs (click ‹ / › / the title) or click through by hand.
+  'nav-live'(F) {
+    // Bundesliga live on matchday 4: browsing back must not mix up the live table.
+    return { now: '2026-09-19T15:22:00Z', states: liveBundesliga(F), cards: [{ config: { competitions: FOUR } }] };
+  },
+  'nav-single'(F) {
+    return {
+      now: '2026-09-27T12:00:00Z',
+      states: realStates(F),
+      cards: [{ config: { entity: 'sensor.matchday_bundesliga_spieltag', table_entity: 'sensor.matchday_bundesliga_tabelle', name: 'Bundesliga' } }],
+    };
+  },
+  'nav-error'(F) {
+    // The first call for the 3rd matchday fails ("Erneut versuchen" then works).
+    return { now: '2026-09-27T12:00:00Z', states: realStates(F), mock: { failOnce: ['bl1|3'] }, cards: [{ config: { competitions: FOUR } }] };
+  },
+  'nav-details-error'(F) {
+    return {
+      now: '2026-09-27T12:00:00Z',
+      states: realStates(F),
+      mock: { failOnce: ['details:83177'] },
+      cards: [{ config: { competitions: FOUR } }],
+    };
+  },
+  'nav-off'(F) {
+    return { now: '2026-09-27T12:00:00Z', states: realStates(F), cards: [{ config: { competitions: FOUR, navigation: false } }] };
+  },
+  legacy(F) {
+    // Integration 0.3.0: no `matchdays` attribute, no actions -> no navigation, no error.
+    return { now: '2026-09-27T12:00:00Z', states: realStates(F, false), cards: [{ config: { competitions: FOUR } }] };
   },
   unavailable(F) {
     const states = realStates(F);

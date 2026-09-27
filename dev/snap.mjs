@@ -29,6 +29,12 @@ const DESKTOP = { width: 1280, height: 900 };
 const PHONE = { width: 430, height: 932 };
 
 // w: card width (a two-column section on a 1280 px screen is ~976 px wide).
+// open: match ids to open; steps: [action, selector|ms] run in order before the shot:
+//   ['click', sel], ['wait', sel] (until visible), ['sleep', ms], ['key', 'ArrowDown'].
+// params: extra query parameters (latency=<ms>, dlatency=<ms> for the mocked actions).
+const PREV = ['click', '.nav-prev'];
+const NEXT = ['click', '.nav-next'];
+const md3 = (id) => [PREV, ['wait', `.row[data-id="${id}"]`], ['click', `.row[data-id="${id}"]`], ['wait', '.zone.open .lu-head'], ['sleep', 500]];
 const SHOTS = [
   { name: 'overview-desktop', scenario: 'overview', viewport: DESKTOP, w: 976, docs: true },
   { name: 'overview-mobile', scenario: 'overview', viewport: PHONE, w: 'full' },
@@ -45,6 +51,24 @@ const SHOTS = [
   { name: 'pokal-shootout-live-mobile', scenario: 'pokal-shootout-live', viewport: PHONE, w: 'full', open: ['81849'], docs: true },
   { name: 'team-mobile', scenario: 'team', viewport: PHONE, w: 'full', docs: true },
   { name: 'unavailable-mobile', scenario: 'unavailable', viewport: PHONE, w: 'full' },
+  // Matchday navigation
+  { name: 'nav-back-desktop', scenario: 'overview', viewport: DESKTOP, w: 976, steps: md3('83177'), docs: true },
+  { name: 'nav-back-mobile', scenario: 'overview', viewport: PHONE, w: 'full', steps: md3('83177'), docs: true },
+  { name: 'nav-back-light-desktop', scenario: 'overview', viewport: DESKTOP, w: 976, theme: 'light', steps: md3('83177') },
+  { name: 'nav-live-table-desktop', scenario: 'nav-live', viewport: DESKTOP, w: 976, steps: [PREV, ['wait', '.row[data-id="83177"]'], ['sleep', 300]] },
+  { name: 'nav-picker-mobile', scenario: 'overview', viewport: PHONE, w: 'full', steps: [['click', '.nav-title'], ['sleep', 300]], docs: true },
+  { name: 'nav-picker-desktop', scenario: 'overview-pl', viewport: DESKTOP, w: 976, steps: [['click', '.nav-title'], ['key', 'ArrowUp'], ['key', 'ArrowUp'], ['sleep', 300]] },
+  { name: 'nav-loading-mobile', scenario: 'overview', viewport: PHONE, w: 'full', params: { latency: 60000 }, steps: [PREV, ['sleep', 700]] },
+  { name: 'nav-error-mobile', scenario: 'nav-error', viewport: PHONE, w: 'full', steps: [PREV, ['wait', '.retry'], ['sleep', 300]] },
+  { name: 'nav-retry-mobile', scenario: 'nav-error', viewport: PHONE, w: 'full', steps: [PREV, ['wait', '.retry'], ['click', '.retry'], ['wait', '.row[data-id="83177"]'], ['sleep', 300]] },
+  { name: 'nav-details-loading-mobile', scenario: 'overview', viewport: PHONE, w: 'full', params: { dlatency: 60000 }, steps: [PREV, ['wait', '.row[data-id="83177"]'], ['click', '.row[data-id="83177"]'], ['sleep', 600]] },
+  { name: 'nav-details-error-mobile', scenario: 'nav-details-error', viewport: PHONE, w: 'full', steps: [PREV, ['wait', '.row[data-id="83177"]'], ['click', '.row[data-id="83177"]'], ['wait', '.zone.open .retry'], ['sleep', 400]] },
+  { name: 'nav-next-mobile', scenario: 'overview', viewport: PHONE, w: 'full', steps: [NEXT, ['wait', '.nav-today:not([hidden])'], ['sleep', 900]] },
+  { name: 'nav-single-mobile', scenario: 'nav-single', viewport: PHONE, w: 'full', steps: [PREV, PREV, ['sleep', 1800]] },
+  { name: 'nav-pokal-mobile', scenario: 'pokal', viewport: PHONE, w: 'full', steps: [NEXT, ['sleep', 900]] },
+  { name: 'nav-pokal-empty-mobile', scenario: 'pokal', viewport: PHONE, w: 'full', steps: [NEXT, ['sleep', 900], NEXT, ['sleep', 900]] },
+  { name: 'nav-en-mobile', scenario: 'overview', viewport: PHONE, w: 'full', lang: 'en', steps: md3('83177') },
+  { name: 'legacy-mobile', scenario: 'legacy', viewport: PHONE, w: 'full' },
 ];
 
 const args = process.argv.slice(2);
@@ -107,11 +131,17 @@ for (const shot of SHOTS.filter((s) => !filter || s.name.includes(filter))) {
   page.on('pageerror', (e) => errors.push(`${shot.name}: ${e.message}`));
   page.on('console', (m) => m.type() === 'error' && !m.text().startsWith('Failed to load resource') && errors.push(`${shot.name}: console: ${m.text()}`));
   page.on('response', (r) => r.status() >= 400 && failed.add(`${r.status()} ${r.url()}`));
-  const q = new URLSearchParams({ scenario: shot.scenario, theme: shot.theme || 'dark', lang: shot.lang || 'de', w: String(shot.w), shot: '1' });
+  const q = new URLSearchParams({ scenario: shot.scenario, theme: shot.theme || 'dark', lang: shot.lang || 'de', w: String(shot.w), shot: '1', ...shot.params });
   await page.goto(base + '?' + q, { waitUntil: 'networkidle', timeout: 180000 });
   await page.waitForFunction(() => window.__ready === true);
   for (const id of shot.open || []) {
     for (const row of await page.locator(`.row[data-id="${id}"]`).all()) await row.click();
+  }
+  for (const [action, arg] of shot.steps || []) {
+    if (action === 'click') await page.locator(arg).first().click();
+    else if (action === 'wait') await page.locator(arg).first().waitFor({ state: 'visible', timeout: 15000 });
+    else if (action === 'sleep') await page.waitForTimeout(arg);
+    else if (action === 'key') await page.keyboard.press(arg);
   }
   await page.waitForTimeout(700);
   const file = join(OUT, shot.name + '.png');

@@ -365,3 +365,225 @@ test('escHtml escapes markup from sensor data', () => {
   m.team1.shortName = '<img src=x onerror=alert(1)>';
   assert.doesNotMatch(card.zoneContentHtml(m, ctx()) + card.centerHtml(m, ctx()), /<img src=x/);
 });
+
+// --- matchday navigation (integration >= 0.4.0) ------------------------------------------
+
+const matchdays = load('matchdays');
+const recorded = load('get_matchday');
+const recordedDetails = load('get_match_details');
+
+test('matchdayList sorts, de-duplicates and rejects a missing attribute', () => {
+  assert.equal(card.matchdayList({}), null, 'integration 0.3.0: no attribute, no navigation');
+  assert.equal(card.matchdayList({ matchdays: [] }), null);
+  assert.equal(card.matchdayList({ matchdays: 'x' }), null);
+  const list = card.matchdayList({
+    matchdays: [
+      { matchday: 3, name: '3. Spieltag', first_kickoff: '2026-09-11T18:30:00Z', last_kickoff: '2026-09-13T15:30:00Z' },
+      { matchday: 1, name: '1. Spieltag' },
+      { matchday: 3, name: 'duplicate' },
+      { matchday: 'x' },
+      null,
+      { matchday: 2 },
+    ],
+  });
+  assert.deepEqual(list.map((x) => [x.matchday, x.name]), [[1, '1. Spieltag'], [2, '2'], [3, '3. Spieltag']]);
+  assert.equal(list[0].first_kickoff, null);
+  assert.equal(card.matchdayList({ matchdays: matchdays.bl1 }).length, 34);
+  assert.deepEqual(card.matchdayList({ matchdays: matchdays.dfb }).map((x) => x.name), ['1. Runde', '2. Runde', 'Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Endspiel']);
+});
+
+test('currentMatchdayOf only accepts a matchday of the list', () => {
+  const list = card.matchdayList({ matchdays: matchdays.bl1 });
+  assert.equal(card.currentMatchdayOf({ matchday: 4 }, list), 4);
+  assert.equal(card.currentMatchdayOf({ matchday: 40 }, list), null);
+  assert.equal(card.currentMatchdayOf({}, list), null);
+});
+
+test('navState: neighbours, edges and the current matchday', () => {
+  const list = card.matchdayList({ matchdays: matchdays.bl1 });
+  const cur = card.navState(list, 4, null);
+  assert.equal(cur.matchday, 4);
+  assert.equal(cur.isCurrent, true);
+  assert.deepEqual([cur.prev.matchday, cur.next.matchday], [3, 5]);
+  const first = card.navState(list, 4, 1);
+  assert.equal(first.prev, null, 'no way back from the first matchday');
+  assert.equal(first.next.matchday, 2);
+  assert.equal(first.isCurrent, false);
+  assert.equal(first.currentName, '4. Spieltag');
+  const last = card.navState(list, 4, 34);
+  assert.equal(last.next, null);
+  assert.equal(last.prev.matchday, 33);
+  assert.equal(card.navState(list, 4, 99).matchday, 4, 'unknown matchday falls back to the current one');
+  assert.equal(card.navState(list, null, 3), null, 'no current matchday, no navigation');
+  assert.equal(card.navState(null, 4, null), null);
+  const cup = card.matchdayList({ matchdays: matchdays.dfb });
+  assert.equal(card.navState(cup, 1, null).prev, null);
+  assert.equal(card.navState(cup, 1, 6).name, 'Endspiel');
+});
+
+test('shownMatchday stores the current matchday as null', () => {
+  assert.equal(card.shownMatchday(4, 4), null);
+  assert.equal(card.shownMatchday(null, 4), null);
+  assert.equal(card.shownMatchday(3, 4), 3);
+});
+
+test('pickerIndex: keyboard in the matchday list stays inside its bounds', () => {
+  assert.equal(card.pickerIndex('ArrowDown', 3, 34), 4);
+  assert.equal(card.pickerIndex('ArrowDown', 33, 34), 33);
+  assert.equal(card.pickerIndex('ArrowUp', 0, 34), 0);
+  assert.equal(card.pickerIndex('PageDown', 30, 34), 33);
+  assert.equal(card.pickerIndex('PageUp', 3, 34), 0);
+  assert.equal(card.pickerIndex('Home', 20, 34), 0);
+  assert.equal(card.pickerIndex('End', 2, 34), 33);
+  assert.equal(card.pickerIndex('Enter', 2, 34), null);
+  assert.equal(card.pickerIndex('ArrowDown', 0, 0), null);
+});
+
+test('matchdayDates: compact date range of a round', () => {
+  const c = ctx();
+  assert.equal(card.matchdayDates({ first_kickoff: '2026-09-18T18:30:00Z', last_kickoff: '2026-09-20T17:30:00Z' }, c), '18.–20.09.');
+  assert.equal(card.matchdayDates({ first_kickoff: '2026-09-30T18:30:00Z', last_kickoff: '2026-10-02T17:30:00Z' }, c), '30.09.–02.10.');
+  assert.equal(card.matchdayDates({ first_kickoff: '2027-05-22T13:30:00Z', last_kickoff: '2027-05-22T13:30:00Z' }, c), '22.05.');
+  assert.equal(card.matchdayDates({ first_kickoff: '2026-09-18T22:30:00Z', last_kickoff: null }, c), '19.09.', 'local day');
+  assert.equal(card.matchdayDates({ first_kickoff: null, last_kickoff: null }, c), '', 'cup round not drawn yet');
+  assert.equal(card.matchdayDates({ first_kickoff: 'nonsense' }, c), '');
+  assert.equal(card.matchdayDates({ first_kickoff: '2026-09-18T18:30:00Z', last_kickoff: '2026-09-20T17:30:00Z' }, ctx({ locale: 'en-GB' })), '18/09–20/09');
+});
+
+test('cacheTtl: finished matchdays stay, open ones for 15 minutes, running ones for a minute', () => {
+  assert.equal(card.cacheTtl(recorded['bl1|3'].matches), Infinity);
+  assert.equal(card.cacheTtl(recorded['bl1|5'].matches), 15 * 60 * 1000);
+  const live = JSON.parse(JSON.stringify(recorded['bl1|3'].matches));
+  live[0].status = 'live';
+  assert.equal(card.cacheTtl(live), 60 * 1000);
+  const postponed = JSON.parse(JSON.stringify(recorded['bl1|3'].matches));
+  postponed[4].status = 'pre';
+  assert.equal(card.cacheTtl(postponed), 15 * 60 * 1000, 'a postponed match keeps the matchday open');
+  assert.equal(card.cacheTtl([]), 15 * 60 * 1000, 'empty cup round');
+  assert.equal(card.cacheTtl([{ matchIsFinished: true }]), Infinity, 'OpenLigaDB-only match without status');
+});
+
+test('needsFetch: fresh, expired, running and failed records', () => {
+  const now = 1000000;
+  assert.equal(card.needsFetch(undefined, now), true);
+  assert.equal(card.needsFetch({ data: {}, expires: now + 1, pending: null, error: null }, now), false);
+  assert.equal(card.needsFetch({ data: {}, expires: now, pending: null, error: null }, now), true, 'expired');
+  assert.equal(card.needsFetch({ data: {}, expires: Infinity, pending: null, error: null }, now), false);
+  assert.equal(card.needsFetch({ data: null, expires: 0, pending: Promise.resolve(), error: null }, now), false, 'already loading');
+  assert.equal(card.needsFetch({ data: null, expires: 0, pending: null, error: 'x' }, now), false, 'error stays until retried');
+});
+
+test('remoteLoad shares a running request and keeps old data when a refresh fails', async () => {
+  const store = new Map();
+  let now = 0;
+  let calls = 0;
+  const ok = () => {
+    calls += 1;
+    return Promise.resolve({ n: calls });
+  };
+  const p1 = card.remoteLoad(store, 'k', ok, () => 1000, () => now);
+  const p2 = card.remoteLoad(store, 'k', ok, () => 1000, () => now);
+  assert.equal(p1, p2);
+  await p1;
+  assert.equal(calls, 1);
+  const r = store.get('k');
+  assert.deepEqual(r.data, { n: 1 });
+  assert.equal(r.expires, 1000);
+  assert.equal(r.pending, null);
+  now = 5000;
+  await card.remoteLoad(store, 'k', () => Promise.reject({ code: 'x', message: 'down' }), () => 1000, () => now);
+  assert.deepEqual(r.data, { n: 1 }, 'old data stays');
+  assert.equal(r.error, null);
+  assert.equal(r.expires, 5000 + card.CACHE_TTL_RETRY);
+  await card.remoteLoad(store, 'e', () => Promise.reject({ code: 'home_assistant_error', message: 'OpenLigaDB: timeout' }), () => 1000, () => now);
+  assert.equal(store.get('e').error, 'OpenLigaDB: timeout');
+  assert.equal(store.get('e').data, null);
+  await card.remoteLoad(store, 't', () => {
+    throw new Error('sync throw');
+  }, () => 1000, () => now);
+  assert.equal(store.get('t').error, 'sync throw');
+});
+
+test('errorText reads HA error objects', () => {
+  assert.equal(card.errorText({ code: 'not_found', message: 'Action matchday.get_matchday not found.' }), 'Action matchday.get_matchday not found.');
+  assert.equal(card.errorText({ code: 'timeout' }), 'timeout');
+  assert.equal(card.errorText(new Error('x')), 'x');
+  assert.equal(card.errorText(undefined), 'Unknown error');
+});
+
+test('cache keys per competition, season and matchday', () => {
+  assert.equal(card.matchdayCacheKey('bl1', 2026, 3), 'bl1|2026|3');
+  assert.notEqual(card.matchdayCacheKey('bl1', 2026, 3), card.matchdayCacheKey('bl2', 2026, 3));
+  assert.notEqual(card.matchdayCacheKey('bl1', 2026, 3), card.matchdayCacheKey('bl1', 2027, 3));
+  assert.equal(card.matchdayCacheKey(null, null, 3), '?|?|3');
+  assert.equal(card.detailsCacheKey('bl1', 83177), 'bl1|83177');
+});
+
+test('mapMatchdayResponse: call_service answer of matchday.get_matchday', () => {
+  const body = recorded['bl1|3'];
+  const shuffled = Object.assign({}, body, { matches: body.matches.slice().reverse().concat([null, { foo: 1 }]) });
+  const r = card.mapMatchdayResponse({ context: { id: 'x' }, response: shuffled }, 3);
+  assert.equal(r.competition, 'bl1');
+  assert.equal(r.season, 2026);
+  assert.equal(r.matchday, 3);
+  assert.equal(r.name, '3. Spieltag');
+  assert.equal(r.isCurrent, false);
+  assert.equal(r.matches.length, 9, 'broken entries dropped');
+  const kickoffs = r.matches.map((m) => m.matchDateTimeUTC);
+  assert.deepEqual(kickoffs, kickoffs.slice().sort(), 'sorted by kick-off');
+  assert.equal(card.mapMatchdayResponse(body, 3).matches.length, 9, 'bare response object');
+  assert.throws(() => card.mapMatchdayResponse({ response: body }, 4), /answered matchday 3 instead of 4/);
+  assert.throws(() => card.mapMatchdayResponse({ response: null }, 3), /Unexpected answer/);
+  assert.throws(() => card.mapMatchdayResponse({ response: { matchday: 3 } }, 3), /Unexpected answer/);
+  const noNumber = card.mapMatchdayResponse({ response: { matches: [] } }, 5);
+  assert.equal(noNumber.matchday, 5);
+});
+
+test('recorded matchdays have empty summary fields, the details fill them in', () => {
+  const m = recorded['bl1|3'].matches.find((x) => x.matchID === 83177);
+  assert.deepEqual([m.substitutions, m.stats, m.lineups, m.ht_score], [[], null, null, null]);
+  assert.ok(m.scorers.length && m.cards.length, 'scorers and cards come with the matchday');
+  const d = card.mapDetailsResponse({ context: {}, response: recordedDetails['83177'] });
+  const full = card.withDetails(m, d);
+  assert.ok(full.substitutions.length > 0);
+  assert.ok(full.stats && full.lineups);
+  assert.equal(full.ht_score, '2:0');
+  assert.equal(m.stats, null, 'the cached match is not changed');
+  const html = card.zoneContentHtml(full, ctx({ code: 'bl1' }));
+  assert.match(html, /Aufstellung/);
+  assert.match(html, /Ballbesitz/);
+  assert.match(html, / für /);
+  const lead = card.zoneContentHtml(m, ctx({ code: 'bl1' }), '<div class="retry-box">x</div>');
+  assert.match(lead, /^<div class="zone-pad"><div class="retry-box">x<\/div>/);
+});
+
+test('mapDetailsResponse tolerates missing parts', () => {
+  const d = card.mapDetailsResponse({ response: { match_id: 1, stats: [], lineups: null } });
+  assert.deepEqual(d, { match_id: 1, substitutions: [], stats: null, lineups: null, ht_score: null, pso: null });
+  assert.throws(() => card.mapDetailsResponse({ response: null }), /Unexpected answer/);
+  assert.throws(() => card.mapDetailsResponse([]), /Unexpected answer/);
+  const m = { matchID: 1, substitutions: [{ in: 'a' }], ht_score: '1:0', pso: null };
+  assert.equal(card.withDetails(m, null), m);
+  assert.deepEqual(card.withDetails(m, d).substitutions, [{ in: 'a' }], 'empty details keep what the match had');
+  assert.equal(card.withDetails(m, d).ht_score, '1:0');
+});
+
+test('pickerHtml marks the shown and the current matchday', () => {
+  const list = card.matchdayList({ matchdays: matchdays.bl1 });
+  const html = card.pickerHtml(list, card.navState(list, 4, 2), ctx());
+  assert.equal((html.match(/role="option"/g) || []).length, 34);
+  assert.match(html, /data-md="2" aria-selected="true"/);
+  assert.equal((html.match(/aria-selected="true"/g) || []).length, 1);
+  assert.match(html, /is-current" role="option" tabindex="-1" data-md="4"/);
+  assert.match(html, />aktuell</);
+  assert.match(html, />28\.–30\.08\.</);
+  const evil = card.pickerHtml([{ matchday: 1, name: '<b>x</b>', first_kickoff: null }], { matchday: 1, current: 1 }, ctx());
+  assert.doesNotMatch(evil, /<b>/);
+});
+
+test('normalizeConfig: navigation defaults to on', () => {
+  assert.equal(card.normalizeConfig({ entity: 'sensor.a' }).navigation, true);
+  assert.equal(card.normalizeConfig({ entity: 'sensor.a', navigation: false }).navigation, false);
+  assert.throws(() => card.normalizeConfig({ entity: 'sensor.a', navigation: 'no' }), /"navigation" must be true or false/);
+  Object.keys(card.STRINGS.en).forEach((k) => assert.ok(k in card.STRINGS.de, k));
+});

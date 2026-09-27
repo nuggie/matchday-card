@@ -14,5 +14,5 @@ jobs:
           category: plugin
           # While the repository is private the action cannot read file contents: it reports an
           # invalid hacs.json and no README images (see hacs/integration#5497), although both are
-          # fine (README.md embeds six screenshots). Remove this line when going public.
+          # fine (README.md embeds nine screenshots). Remove this line when going public.
           ignore: hacsjson images

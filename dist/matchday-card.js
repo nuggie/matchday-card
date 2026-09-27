@@ -3,6 +3,10 @@
  * matchday with live scores, ticker, stats and line-ups, the live table with coloured
  * zones, competition chips and a team mode. Vanilla custom element, no build step.
  *
+ * Matchday navigation (integration >= 0.4.0): the sensor's `matchdays` attribute lists
+ * all rounds; other matchdays than the current one come from the actions
+ * matchday.get_matchday / matchday.get_match_details and are cached in memory.
+ *
  * Rendering: the card only touches the DOM when one of its own entities changed.
  * Same match list as before -> only the changed matches are patched (no image reloads,
  * the open ticker stays open); otherwise the match list is rebuilt.
@@ -10,7 +14,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.1.1';
+  const VERSION = '0.2.0';
   const CARD_TAG = 'matchday-card';
   const EDITOR_TAG = 'matchday-card-editor';
   const STORAGE_PREFIX = 'matchday-card:';
@@ -96,6 +100,18 @@
       colGoals: 'Tore',
       colDiff: 'Diff',
       colPoints: 'Pkt',
+      navGroup: 'Spieltag',
+      navPrev: 'Zurück: {name}',
+      navNext: 'Weiter: {name}',
+      navPick: 'Spieltag wählen',
+      navCurrent: 'Aktuell',
+      navCurrentTitle: 'Zum aktuellen Spieltag ({name})',
+      currentTag: 'aktuell',
+      loadError: 'Spieltag konnte nicht geladen werden.',
+      loadingDetails: 'Details werden geladen …',
+      detailsError: 'Details konnten nicht geladen werden.',
+      retry: 'Erneut versuchen',
+      tableAsOf: 'Stand {name}',
       zones: {
         cl: 'CL',
         el: 'EL',
@@ -141,6 +157,18 @@
       colGoals: 'Goals',
       colDiff: 'GD',
       colPoints: 'Pts',
+      navGroup: 'Matchday',
+      navPrev: 'Previous: {name}',
+      navNext: 'Next: {name}',
+      navPick: 'Choose matchday',
+      navCurrent: 'Current',
+      navCurrentTitle: 'Back to the current matchday ({name})',
+      currentTag: 'current',
+      loadError: 'Could not load the matchday.',
+      loadingDetails: 'Loading details …',
+      detailsError: 'Could not load the match details.',
+      retry: 'Try again',
+      tableAsOf: 'as of {name}',
       zones: {
         cl: 'Champions League',
         el: 'Europa League',
@@ -159,6 +187,11 @@
   const ICON_GRID = 'M3,11H11V3H3M3,21H11V13H3M13,21H21V13H13M13,3V11H21V3';
   const ICON_TABLE =
     'M5,4H19A2,2 0 0,1 21,6V18A2,2 0 0,1 19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4M5,8V12H11V8H5M13,8V12H19V8H13M5,14V18H11V14H5M13,14V18H19V14H13Z';
+
+  const ICON_PREV = 'M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z';
+  const ICON_NEXT = 'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z';
+  const ICON_CARET = 'M7,10L12,15L17,10H7Z';
+  const ICON_BACK = 'M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z';
 
   const GOAL_ICON = '<span class="ic ic-goal"></span>';
   const YELLOW_ICON = '<span class="ic ic-yellow"></span>';
@@ -476,6 +509,235 @@
     return n > 0 ? '+' + n : String(n);
   }
 
+  // Matchday navigation ----------------------------------------------------------
+
+  // Rounds of the season from the sensor's `matchdays` attribute (integration >= 0.4.0),
+  // sorted and de-duplicated; null if the attribute is missing or empty (older versions).
+  function matchdayList(attrs) {
+    const raw = attrs && attrs.matchdays;
+    if (!Array.isArray(raw)) return null;
+    const seen = new Set();
+    const list = [];
+    raw.forEach((x) => {
+      const n = x && typeof x === 'object' ? Number(x.matchday) : NaN;
+      if (!Number.isInteger(n) || seen.has(n)) return;
+      seen.add(n);
+      list.push({
+        matchday: n,
+        name: x.name == null || x.name === '' ? String(n) : String(x.name),
+        first_kickoff: typeof x.first_kickoff === 'string' && x.first_kickoff ? x.first_kickoff : null,
+        last_kickoff: typeof x.last_kickoff === 'string' && x.last_kickoff ? x.last_kickoff : null,
+      });
+    });
+    list.sort((a, b) => a.matchday - b.matchday);
+    return list.length ? list : null;
+  }
+
+  // The sensor's current matchday, if it is part of the list.
+  function currentMatchdayOf(attrs, list) {
+    const n = Number(attrs && attrs.matchday);
+    return Number.isInteger(n) && list && list.some((x) => x.matchday === n) ? n : null;
+  }
+
+  // Where the navigation stands. shown = null means "the current matchday"; a shown
+  // matchday that is no longer in the list falls back to the current one.
+  function navState(list, current, shown) {
+    if (!list || current == null) return null;
+    let index = shown == null ? -1 : list.findIndex((x) => x.matchday === shown);
+    if (index === -1) index = list.findIndex((x) => x.matchday === current);
+    if (index === -1) return null;
+    const entry = list[index];
+    const cur = list.find((x) => x.matchday === current);
+    return {
+      matchday: entry.matchday,
+      name: entry.name,
+      index,
+      isCurrent: entry.matchday === current,
+      current,
+      currentName: cur.name,
+      prev: index > 0 ? list[index - 1] : null,
+      next: index < list.length - 1 ? list[index + 1] : null,
+    };
+  }
+
+  // Normalised selection: the current matchday is stored as null, so the card keeps
+  // following the sensor when it moves on to the next matchday.
+  function shownMatchday(target, current) {
+    return target == null || target === current ? null : target;
+  }
+
+  // New option index in the matchday list for a key press, null for other keys.
+  function pickerIndex(key, index, length) {
+    if (!length) return null;
+    const clamp = (i) => Math.max(0, Math.min(length - 1, i));
+    switch (key) {
+      case 'ArrowDown':
+        return clamp(index + 1);
+      case 'ArrowUp':
+        return clamp(index - 1);
+      case 'PageDown':
+        return clamp(index + 8);
+      case 'PageUp':
+        return clamp(index - 8);
+      case 'Home':
+        return 0;
+      case 'End':
+        return length - 1;
+      default:
+        return null;
+    }
+  }
+
+  // "18.–20.09." (German, same month), "30.09.–02.10.", "18/09–20/09" (English).
+  function matchdayDates(entry, ctx) {
+    if (!entry || !entry.first_kickoff) return '';
+    const fmt = (iso) => {
+      const d = new Date(iso);
+      return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(ctx.locale, { timeZone: ctx.tz, day: '2-digit', month: '2-digit' });
+    };
+    const a = fmt(entry.first_kickoff);
+    const b = entry.last_kickoff ? fmt(entry.last_kickoff) : a;
+    if (!a) return '';
+    if (!b || a === b) return a;
+    const ma = a.match(/^(\d{2}\.)(\d{2}\.)$/);
+    const mb = b.match(/^(\d{2}\.)(\d{2}\.)$/);
+    if (ma && mb && ma[2] === mb[2]) return ma[1] + '–' + b;
+    return a + '–' + b;
+  }
+
+  // Cache of fetched matchdays and match details ------------------------------------
+
+  const CACHE_TTL_OPEN = 15 * 60 * 1000; // matchday (or match) not finished yet
+  const CACHE_TTL_LIVE = 60 * 1000; // one of its matches is running
+  const CACHE_TTL_RETRY = 60 * 1000; // a background refresh failed, the old data stays
+  const CACHE_MAX = 80;
+
+  function matchdayCacheKey(code, season, matchday) {
+    return [code || '?', season == null ? '?' : season, matchday].join('|');
+  }
+
+  function detailsCacheKey(code, matchId) {
+    return (code || '?') + '|' + matchId;
+  }
+
+  function isFinishedMatch(m) {
+    return !!m && (m.status === 'post' || (m.status == null && m.matchIsFinished === true));
+  }
+
+  // How long fetched matches stay fresh: finished ones for good, running ones a minute,
+  // everything else 15 minutes.
+  function cacheTtl(matches) {
+    const list = Array.isArray(matches) ? matches : [];
+    if (list.length && list.every(isFinishedMatch)) return Infinity;
+    if (hasLiveMatch(list)) return CACHE_TTL_LIVE;
+    return CACHE_TTL_OPEN;
+  }
+
+  // record: { data, expires, pending, error } (see remoteLoad).
+  function needsFetch(record, nowMs) {
+    if (!record) return true;
+    if (record.pending || record.error) return false;
+    return !(record.data && nowMs < record.expires);
+  }
+
+  function remoteRecord(store, key) {
+    let r = store.get(key);
+    if (!r) {
+      r = { data: null, expires: 0, pending: null, error: null };
+      store.set(key, r);
+      // Oldest first (Map keeps insertion order); never drop a running request.
+      for (const [k, v] of store) {
+        if (store.size <= CACHE_MAX) break;
+        if (!v.pending && k !== key) store.delete(k);
+      }
+    }
+    return r;
+  }
+
+  // Load `key` once: concurrent callers share the request. A failure keeps older data
+  // (and retries after a minute); without data it is kept as `error` until cleared.
+  function remoteLoad(store, key, fetcher, ttlOf, nowFn) {
+    const now = nowFn || Date.now;
+    const r = remoteRecord(store, key);
+    if (r.pending) return r.pending;
+    r.error = null;
+    r.pending = Promise.resolve()
+      .then(fetcher)
+      .then(
+        (data) => {
+          r.data = data;
+          r.expires = now() + ttlOf(data);
+        },
+        (err) => {
+          if (r.data) r.expires = now() + CACHE_TTL_RETRY;
+          else r.error = errorText(err);
+        },
+      )
+      .then(() => {
+        r.pending = null;
+      });
+    return r.pending;
+  }
+
+  function errorText(err) {
+    if (err && typeof err === 'object' && err.message) return String(err.message);
+    if (err && typeof err === 'object' && err.code) return String(err.code);
+    return err == null || err === '' ? 'Unknown error' : String(err);
+  }
+
+  // Action responses -------------------------------------------------------------------
+
+  // sendMessagePromise resolves call_service with { context, response }.
+  function responseBody(raw) {
+    return raw && typeof raw === 'object' && 'response' in raw ? raw.response : raw;
+  }
+
+  function mapMatchdayResponse(raw, requested) {
+    const r = responseBody(raw);
+    if (!r || typeof r !== 'object' || !Array.isArray(r.matches)) {
+      throw new Error('Unexpected answer of matchday.get_matchday.');
+    }
+    const n = Number(r.matchday);
+    const matchday = Number.isInteger(n) ? n : requested;
+    if (requested != null && matchday !== requested) {
+      throw new Error('matchday.get_matchday answered matchday ' + matchday + ' instead of ' + requested + '.');
+    }
+    return {
+      competition: r.competition ? String(r.competition) : null,
+      season: toInt(r.season),
+      matchday,
+      name: r.name ? String(r.name) : null,
+      isCurrent: r.is_current === true,
+      matches: sortMatches(r.matches.filter((m) => m && typeof m === 'object' && m.matchID != null)),
+    };
+  }
+
+  function mapDetailsResponse(raw) {
+    const r = responseBody(raw);
+    if (!r || typeof r !== 'object' || Array.isArray(r)) throw new Error('Unexpected answer of matchday.get_match_details.');
+    const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
+    return {
+      match_id: r.match_id == null ? null : r.match_id,
+      substitutions: Array.isArray(r.substitutions) ? r.substitutions : [],
+      stats: obj(r.stats),
+      lineups: obj(r.lineups),
+      ht_score: typeof r.ht_score === 'string' && r.ht_score ? r.ht_score : null,
+      pso: obj(r.pso),
+    };
+  }
+
+  // A match of another matchday with its lazily loaded details.
+  function withDetails(m, d) {
+    if (!d) return m;
+    return Object.assign({}, m, {
+      substitutions: d.substitutions && d.substitutions.length ? d.substitutions : m.substitutions || [],
+      stats: d.stats || m.stats || null,
+      lineups: d.lineups || m.lineups || null,
+      ht_score: d.ht_score || m.ht_score || null,
+      pso: d.pso || m.pso || null,
+    });
+  }
+
   // Configuration --------------------------------------------------------------
 
   const ENTITY_RE = /^sensor\.[a-z0-9_]+$/;
@@ -580,6 +842,7 @@
       show_legend: boolOption(config, 'show_legend', true),
       show_header: boolOption(config, 'show_header', true),
       show_espn_link: boolOption(config, 'show_espn_link', true),
+      navigation: boolOption(config, 'navigation', true),
       chip_columns: chipColumns,
       default_competition: config.default_competition == null ? null : config.default_competition,
       language: config.language || null,
@@ -801,7 +1064,8 @@
     return info ? 'https://www.espn.com/soccer/schedule/_/league/' + info.espn : null;
   }
 
-  function zoneContentHtml(m, ctx) {
+  // lead: optional HTML above the ticker (e.g. a failed details request).
+  function zoneContentHtml(m, ctx, lead) {
     const t = ctx.t;
     const events = buildTickerEvents(m, t);
     const hasShootout = !!shootoutResult(m);
@@ -814,7 +1078,7 @@
     if (url) {
       html += '<div class="zone-footer"><a class="espn-link" href="' + escHtml(url) + '" target="_blank" rel="noopener">' + escHtml(t('espn')) + '</a></div>';
     }
-    return '<div class="zone-pad">' + html + '</div>';
+    return '<div class="zone-pad">' + (lead || '') + html + '</div>';
   }
 
   function tableHtml(rows, ctx) {
@@ -875,6 +1139,60 @@
     );
   }
 
+  function svgIcon(path, cls) {
+    return '<svg class="' + cls + '" viewBox="0 0 24 24" aria-hidden="true"><path d="' + path + '"></path></svg>';
+  }
+
+  // Skeleton of the navigable matchday heading; texts and states are patched in place
+  // (keeps the keyboard focus on the buttons across updates).
+  function navHeadHtml(t) {
+    return (
+      svgIcon(ICON_GRID, 'head-icon') +
+      '<span class="head-prefix" hidden></span>' +
+      '<div class="nav" role="group" aria-label="' + escHtml(t('navGroup')) + '">' +
+      '<button type="button" class="nav-btn nav-prev">' + svgIcon(ICON_PREV, 'nav-ic') + '</button>' +
+      '<button type="button" class="nav-title" aria-haspopup="listbox" aria-expanded="false">' +
+      '<span class="nav-title-text"></span>' + svgIcon(ICON_CARET, 'nav-caret') + '</button>' +
+      '<button type="button" class="nav-btn nav-next">' + svgIcon(ICON_NEXT, 'nav-ic') + '</button>' +
+      '</div>' +
+      '<button type="button" class="nav-today" hidden>' + svgIcon(ICON_BACK, 'nav-today-ic') +
+      '<span>' + escHtml(t('navCurrent')) + '</span></button>' +
+      '<div class="nav-bar" aria-hidden="true"></div>'
+    );
+  }
+
+  function pickerHtml(list, nav, ctx) {
+    const t = ctx.t;
+    return list
+      .map((x) => {
+        const shown = x.matchday === nav.matchday;
+        const current = x.matchday === nav.current;
+        return (
+          '<div class="pk-item' + (current ? ' is-current' : '') + '" role="option" tabindex="-1" data-md="' + x.matchday +
+          '" aria-selected="' + (shown ? 'true' : 'false') + '">' +
+          '<span class="pk-name">' + escHtml(x.name) + '</span>' +
+          (current ? '<span class="pk-tag">' + escHtml(t('currentTag')) + '</span>' : '') +
+          '<span class="pk-date">' + escHtml(matchdayDates(x, ctx)) + '</span>' +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
+  function retryHtml(text, detail, kind, id, t) {
+    return (
+      '<div class="retry-box">' +
+      '<div class="retry-text">' + escHtml(text) + '</div>' +
+      (detail ? '<div class="retry-detail">' + escHtml(detail) + '</div>' : '') +
+      '<button type="button" class="retry" data-kind="' + escHtml(kind) + '"' + (id != null ? ' data-id="' + escHtml(id) + '"' : '') + '>' +
+      escHtml(t('retry')) + '</button></div>'
+    );
+  }
+
+  function zoneLoadingHtml(t) {
+    return '<div class="zone-pad"><div class="zone-load" role="status"><span class="spinner"></span>' + escHtml(t('loadingDetails')) + '</div></div>';
+  }
+
   // ---------------------------------------------------------------------------
   // Styles
   // ---------------------------------------------------------------------------
@@ -924,6 +1242,77 @@
 .head { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 4px; font-size: 15px; font-weight: 600; color: var(--mdc-text); }
 .head[hidden] { display: none; }
 .head-icon { width: 18px; height: 18px; fill: currentColor; flex: 0 0 auto; }
+.pane-matches .head { position: relative; min-height: 36px; }
+.pane-table .head { min-height: 36px; }
+.head-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.head-note { font-size: 12px; font-weight: 500; color: var(--mdc-text2); white-space: nowrap; }
+.head-prefix { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.head-prefix[hidden] { display: none; }
+.nav { display: flex; align-items: center; gap: 2px; min-width: 0; margin-left: -4px; }
+.nav-btn, .nav-title, .nav-today, .retry {
+  font: inherit; color: inherit; background: none; border: none; margin: 0; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; color: var(--mdc-text); }
+.nav-ic { width: 22px; height: 22px; fill: currentColor; }
+.nav-btn:disabled { opacity: 0.25; cursor: default; }
+.nav-title { display: flex; align-items: center; gap: 2px; min-width: 0; height: 36px; padding: 0 6px 0 8px; border-radius: 18px; font-weight: 600; }
+.nav-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nav-caret { width: 18px; height: 18px; flex: 0 0 auto; fill: var(--mdc-text2); transition: transform 0.15s ease-out; }
+.nav-title[aria-expanded="true"] .nav-caret { transform: rotate(180deg); }
+.nav-today {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; margin-left: auto; height: 28px; padding: 0 10px 0 8px;
+  border-radius: 14px; font-size: 12px; font-weight: 600; color: var(--primary-color, #e08a00);
+  background: color-mix(in srgb, var(--primary-color, #e08a00) 14%, transparent);
+}
+.nav-today[hidden] { display: none; }
+.nav-today-ic { width: 14px; height: 14px; fill: currentColor; }
+/* Narrow card with the competition name in front (single competition): the round name
+   ("Achtelfinale") gets the room, "Current" keeps only its icon (and its label for AT). */
+@container mdc (max-width: 459px) {
+  .head:has(.head-prefix:not([hidden])) { gap: 4px; }
+  .head:has(.head-prefix:not([hidden])) .nav-today { width: 32px; padding: 0; justify-content: center; }
+  .head:has(.head-prefix:not([hidden])) .nav-today span { display: none; }
+}
+@media (hover: hover) {
+  .nav-btn:not(:disabled):hover, .nav-title:hover { background: var(--mdc-hover); }
+  .nav-today:hover { background: color-mix(in srgb, var(--primary-color, #e08a00) 22%, transparent); }
+}
+.nav-btn:focus-visible, .nav-title:focus-visible, .nav-today:focus-visible, .retry:focus-visible {
+  outline: 2px solid var(--primary-color, #e08a00); outline-offset: -2px;
+}
+.nav-bar { position: absolute; left: 4px; right: 4px; bottom: -4px; height: 2px; border-radius: 1px; overflow: hidden; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.nav-bar.on { opacity: 1; transition-delay: 0.15s; }
+.nav-bar::before { content: ''; position: absolute; top: 0; bottom: 0; left: -35%; width: 35%; background: var(--primary-color, #e08a00); animation: mdc-bar 1.1s ease-in-out infinite; }
+@keyframes mdc-bar { from { left: -35%; } to { left: 100%; } }
+.head-wrap { position: relative; }
+.picker {
+  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0; width: min(340px, 100%); max-height: min(360px, 60vh);
+  overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 4px;
+  background: var(--matchday-popup-background, var(--card-background-color, var(--mdc-block)));
+  border-radius: 12px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--mdc-line);
+}
+.picker[hidden] { display: none; }
+.pk-item { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 8px; cursor: pointer; font-size: 14px; outline: none; }
+.pk-item:hover { background: var(--mdc-hover); }
+.pk-item:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-color, #e08a00); }
+.pk-item[aria-selected="true"] { font-weight: 700; background: color-mix(in srgb, var(--mdc-text) 9%, transparent); }
+.pk-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-tag { flex: 0 0 auto; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary-color, #e08a00); }
+.pk-date { flex: 0 0 auto; font-size: 12px; font-weight: 500; color: var(--mdc-text2); font-variant-numeric: tabular-nums; }
+.list { transition: opacity 0.15s; }
+.list.loading { opacity: 0.4; pointer-events: none; transition-delay: 0.15s; }
+.retry-box { padding: 20px 12px; text-align: center; }
+.retry-text { font-size: 13px; color: var(--mdc-text); }
+.retry-detail { margin-top: 4px; font-size: 11px; color: var(--mdc-text2); overflow-wrap: anywhere; }
+.retry {
+  margin-top: 12px; min-height: 36px; padding: 0 16px; border-radius: 18px; font-size: 13px; font-weight: 600;
+  color: var(--primary-color, #e08a00); background: color-mix(in srgb, var(--primary-color, #e08a00) 14%, transparent);
+}
+.zone-pad > .retry-box { padding: 8px 0 12px; }
+.zone-load { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-size: 12px; color: var(--mdc-text2); }
+.spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--mdc-line); border-top-color: var(--primary-color, #e08a00); animation: mdc-spin 0.8s linear infinite; }
+@keyframes mdc-spin { to { transform: rotate(360deg); } }
 .head-live { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--mdc-live); text-transform: uppercase; }
 .day-header { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mdc-text2); padding: 12px 4px 6px; }
 .block { background: var(--mdc-block); border-radius: var(--mdc-radius); overflow: hidden; margin-bottom: 8px; }
@@ -966,6 +1355,8 @@
   .live-dot { animation: none; }
   .c-score.flash { animation: none; color: var(--mdc-live); }
   .zone { transition: none; }
+  .nav-caret { transition: none; }
+  .nav-bar::before { animation: none; left: 0; width: 100%; opacity: 0.6; }
 }
 .zone { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 150ms ease-out; }
 .zone.open { grid-template-rows: 1fr; border-top: 1px solid var(--mdc-line); }
@@ -1073,6 +1464,19 @@
 
   const HTMLElementBase = typeof HTMLElement !== 'undefined' ? HTMLElement : class {};
 
+  // Fetched matchdays and match details, shared by all cards of the page: HA re-creates
+  // the cards when the dashboard view changes, the cache survives that.
+  const MATCHDAY_STORE = new Map();
+  const DETAILS_STORE = new Map();
+
+  function setAttr(el, name, value) {
+    if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+
+  function setText(el, value) {
+    if (el.textContent !== value) el.textContent = value;
+  }
+
   class MatchdayCard extends HTMLElementBase {
     static getConfigElement() {
       return document.createElement(EDITOR_TAG);
@@ -1091,7 +1495,8 @@
         '<div class="title" hidden></div>' +
         '<div class="chips" role="tablist"></div>' +
         '<div class="body">' +
-        '<section class="pane pane-matches"><div class="head"></div><div class="list"></div></section>' +
+        '<section class="pane pane-matches"><div class="head-wrap"><div class="head"></div>' +
+        '<div class="picker" id="mdc-picker" role="listbox" hidden></div></div><div class="list"></div></section>' +
         '<section class="pane pane-table" hidden><div class="head"></div><div class="table"></div><div class="legend-wrap"></div></section>' +
         '</div></div>';
       const $ = (sel) => this.shadowRoot.querySelector(sel);
@@ -1100,7 +1505,9 @@
         title: $('.title'),
         chips: $('.chips'),
         body: $('.body'),
+        headWrap: $('.pane-matches .head-wrap'),
         matchesHead: $('.pane-matches .head'),
+        picker: $('.picker'),
         list: $('.pane-matches .list'),
         tablePane: $('.pane-table'),
         tableHead: $('.pane-table .head'),
@@ -1121,7 +1528,16 @@
         },
         true,
       );
+      // Closes the matchday list on a tap outside of heading and list.
+      this._outside = (ev) => {
+        const path = ev.composedPath ? ev.composedPath() : [];
+        if (path.indexOf(this._el.headWrap) === -1) this._closePicker(false);
+      };
+      this._awaiting = new Set();
+      this._pickerOpen = false;
       this._timer = null;
+      this._shown = null;
+      this._openOther = null;
       this._reset();
     }
 
@@ -1132,12 +1548,21 @@
       this._matchById = new Map();
       this._chipsKey = null;
       this._tableKey = null;
+      this._headMode = null;
+      this._headHtml = null;
+      this._head = null;
+      this._nav = null;
+      this._other = false;
     }
 
     setConfig(config) {
       const cfg = normalizeConfig(config);
       this._config = cfg;
+      this._closePicker(false);
       this._reset();
+      // The matchday choice is not kept: a (re)configured card starts at the current one.
+      this._shown = null;
+      this._openOther = null;
       this._active = this._initialCompetition();
       this._el.root.classList.toggle('compact', cfg.compact);
       if (this._hass) this._render(true);
@@ -1175,6 +1600,7 @@
     disconnectedCallback() {
       if (this._timer) clearInterval(this._timer);
       this._timer = null;
+      this._closePicker(false);
     }
 
     // --- state helpers --------------------------------------------------------
@@ -1235,6 +1661,201 @@
         namePref: namePreference(this._config.names, c),
         badge: src ? src.badge : '',
       });
+    }
+
+    // --- matchday navigation ----------------------------------------------------
+
+    // Navigation state of the active competition, or null without navigation (team mode,
+    // switched off, headings hidden, or an integration without the `matchdays` attribute).
+    _navInfo(st) {
+      const cfg = this._config;
+      if (this._teamMode() || !cfg.navigation || !cfg.show_header) return null;
+      const list = matchdayList(st.attributes);
+      if (!list) return null;
+      const nav = navState(list, currentMatchdayOf(st.attributes, list), this._shown);
+      if (!nav) return null;
+      // Once the shown matchday is the current one, follow the sensor again.
+      if (nav.isCurrent) this._shown = null;
+      return Object.assign(nav, {
+        list,
+        entity: this._competition().entity,
+        code: st.attributes.competition || null,
+        season: toInt(st.attributes.season),
+      });
+    }
+
+    _call(service, serviceData) {
+      const conn = this._hass && this._hass.connection;
+      if (!conn || typeof conn.sendMessagePromise !== 'function') {
+        return Promise.reject(new Error('No connection to Home Assistant.'));
+      }
+      return conn.sendMessagePromise({
+        type: 'call_service',
+        domain: 'matchday',
+        service,
+        service_data: serviceData,
+        return_response: true,
+      });
+    }
+
+    // Re-render once a request (possibly started by another card) has finished.
+    _watch(promise) {
+      if (this._awaiting.has(promise)) return;
+      this._awaiting.add(promise);
+      promise.then(() => {
+        this._awaiting.delete(promise);
+        this._refreshView();
+      });
+    }
+
+    _otherMatchday(base, comp, nav, prefix) {
+      const key = matchdayCacheKey(nav.code, nav.season, nav.matchday);
+      let r = MATCHDAY_STORE.get(key);
+      if (needsFetch(r, base.now)) {
+        const serviceData = { entity_id: nav.entity, matchday: nav.matchday };
+        if (nav.season != null) serviceData.season = nav.season;
+        const requested = nav.matchday;
+        remoteLoad(
+          MATCHDAY_STORE,
+          key,
+          () => this._call('get_matchday', serviceData).then((raw) => mapMatchdayResponse(raw, requested)),
+          (data) => cacheTtl(data.matches),
+        );
+        r = MATCHDAY_STORE.get(key);
+      }
+      if (r && r.pending) this._watch(r.pending);
+      const data = {
+        identity: comp.entity + '#' + key,
+        heading: prefix ? prefix + ' · ' + nav.name : nav.name,
+        prefix,
+        code: nav.code,
+        nav,
+        other: true,
+        loading: !!(r && r.pending),
+      };
+      if (r && r.data) {
+        data.matches = r.data.matches.map((m) => withDetails(m, this._detailsRecordData(nav.code, m)));
+        // Keeps the details of an opened running match fresh (15 min / 1 min cache).
+        const open = this._openOther != null && data.matches.find((m) => String(m.matchID) === this._openOther);
+        if (open) this._loadDetails(nav.code, open);
+        return data;
+      }
+      if (r && r.error) data.error = r.error;
+      else data.pending = true;
+      return data;
+    }
+
+    _detailsRecordData(code, m) {
+      const r = DETAILS_STORE.get(detailsCacheKey(code, m.matchID));
+      return r ? r.data : null;
+    }
+
+    // 'ready', 'loading' or 'error': matches of another matchday load their details
+    // (substitutions, stats, line-ups) when they are opened.
+    _detailStatus(code, m, other) {
+      if (!other || m.status === 'pre') return 'ready';
+      const r = DETAILS_STORE.get(detailsCacheKey(code, m.matchID));
+      if (r && r.data) return 'ready';
+      if (r && r.error) return 'error';
+      return 'loading';
+    }
+
+    _loadDetails(code, m) {
+      if (!m || m.status === 'pre') return;
+      const key = detailsCacheKey(code, m.matchID);
+      const r = DETAILS_STORE.get(key);
+      if (r && r.pending) {
+        this._watch(r.pending);
+        return;
+      }
+      if (!needsFetch(r, Date.now())) return;
+      const serviceData = { entity_id: this._competition().entity, match_id: m.matchID };
+      const ttl = cacheTtl([m]);
+      this._watch(
+        remoteLoad(DETAILS_STORE, key, () => this._call('get_match_details', serviceData).then(mapDetailsResponse), () => ttl),
+      );
+    }
+
+    _zoneHtml(m, ctx, status) {
+      if (status === 'loading') return zoneLoadingHtml(ctx.t);
+      if (status === 'error') {
+        const r = DETAILS_STORE.get(detailsCacheKey(ctx.code, m.matchID));
+        return zoneContentHtml(m, ctx, retryHtml(ctx.t('detailsError'), r && r.error, 'details', m.matchID, ctx.t));
+      }
+      return zoneContentHtml(m, ctx);
+    }
+
+    _goTo(target) {
+      const nav = this._nav;
+      if (!nav) return;
+      const next = shownMatchday(target, nav.current);
+      this._closePicker(false);
+      if (next === this._shown) return;
+      this._shown = next;
+      this._openOther = null;
+      if (next != null) {
+        // Coming back to a matchday that failed to load tries again.
+        const r = MATCHDAY_STORE.get(matchdayCacheKey(nav.code, nav.season, next));
+        if (r && r.error && !r.pending) r.error = null;
+      }
+      this._refreshView();
+    }
+
+    _retry(kind, id) {
+      if (kind === 'matchday') {
+        const nav = this._nav;
+        const r = nav && MATCHDAY_STORE.get(matchdayCacheKey(nav.code, nav.season, nav.matchday));
+        if (r && !r.pending) r.error = null;
+      } else if (kind === 'details') {
+        const m = this._matchById.get(String(id));
+        const r = m && DETAILS_STORE.get(detailsCacheKey(this._code, m.matchID));
+        if (r && !r.pending) r.error = null;
+        if (m) this._loadDetails(this._code, m);
+      }
+      this._refreshView();
+    }
+
+    _openPicker() {
+      const nav = this._nav;
+      if (!nav || this._pickerOpen || !this._head) return;
+      const picker = this._el.picker;
+      const base = this._baseCtx();
+      picker.innerHTML = pickerHtml(nav.list, nav, base);
+      picker.setAttribute('aria-label', base.t('navPick'));
+      picker.hidden = false;
+      this._pickerOpen = true;
+      this._head.title.setAttribute('aria-expanded', 'true');
+      const sel = picker.querySelector('.pk-item[aria-selected="true"]');
+      if (sel) {
+        picker.scrollTop = Math.max(0, sel.offsetTop - (picker.clientHeight - sel.offsetHeight) / 2);
+        sel.focus({ preventScroll: true });
+      }
+      window.addEventListener('pointerdown', this._outside, true);
+    }
+
+    _closePicker(refocus) {
+      if (!this._pickerOpen) return;
+      this._pickerOpen = false;
+      this._el.picker.hidden = true;
+      this._el.picker.innerHTML = '';
+      if (this._head) {
+        this._head.title.setAttribute('aria-expanded', 'false');
+        if (refocus) this._head.title.focus();
+      }
+      window.removeEventListener('pointerdown', this._outside, true);
+    }
+
+    // Renders matchday list and table outside of a hass update (navigation, loaded data).
+    _refreshView() {
+      if (!this._config || !this._hass || !this._hass.states) return;
+      try {
+        const base = this._baseCtx();
+        this._renderMatches(base, this._today || dayKeyOf(base.now, base.tz), false);
+        this._renderTable(base, false);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('matchday-card:', e);
+      }
     }
 
     // --- rendering ------------------------------------------------------------
@@ -1308,7 +1929,7 @@
           const info = competitionInfo(code);
           return { ok, code, badge: c.short || (info && info.badge) || c.name || '', matches: ok ? st.attributes.matches : [] };
         });
-        if (sources.every((s) => !s.ok)) return { unavailable: true };
+        if (sources.every((s) => !s.ok)) return { unavailable: true, heading: cfg.team };
         const all = collectTeamMatches(sources, cfg.team);
         return {
           identity: 'team:' + cfg.team,
@@ -1319,24 +1940,104 @@
       }
       const comp = this._competition();
       const st = hass.states[comp.entity];
-      if (!stateOk(st, 'matches')) return { unavailable: true, identity: comp.entity };
+      if (!stateOk(st, 'matches')) return { unavailable: true, identity: comp.entity, heading: comp.name || '' };
       const single = cfg.competitions.length === 1;
-      const heading = single && comp.name ? comp.name + ' · ' + st.state : st.state;
-      return { identity: comp.entity, heading, code: st.attributes.competition, matches: sortMatches(st.attributes.matches) };
+      const prefix = single && comp.name ? comp.name : null;
+      const nav = this._navInfo(st);
+      if (nav && !nav.isCurrent) return this._otherMatchday(base, comp, nav, prefix);
+      return {
+        identity: comp.entity,
+        heading: prefix ? prefix + ' · ' + st.state : st.state,
+        prefix,
+        code: st.attributes.competition,
+        nav,
+        matches: sortMatches(st.attributes.matches),
+      };
+    }
+
+    // Plain heading, or the navigation (‹ 4. Spieltag ›) patched in place.
+    _renderHead(base, data) {
+      const head = this._el.matchesHead;
+      head.hidden = !this._config.show_header;
+      const nav = data.nav || null;
+      this._nav = nav;
+      if (!nav) {
+        this._closePicker(false);
+        const html = headHtml(ICON_GRID, data.heading || '');
+        if (this._headMode !== 'plain' || this._headHtml !== html) head.innerHTML = html;
+        this._headMode = 'plain';
+        this._headHtml = html;
+        this._head = null;
+        return;
+      }
+      if (this._headMode !== 'nav' || this._headLang !== base.lang) {
+        this._closePicker(false);
+        head.innerHTML = navHeadHtml(base.t);
+        const q = (sel) => head.querySelector(sel);
+        this._head = {
+          prefix: q('.head-prefix'),
+          prev: q('.nav-prev'),
+          next: q('.nav-next'),
+          title: q('.nav-title'),
+          text: q('.nav-title-text'),
+          today: q('.nav-today'),
+          bar: q('.nav-bar'),
+        };
+        this._headMode = 'nav';
+        this._headLang = base.lang;
+        this._headHtml = null;
+      }
+      const h = this._head;
+      const t = base.t;
+      const active = this.shadowRoot.activeElement;
+      setText(h.prefix, data.prefix ? data.prefix + ' ·' : '');
+      h.prefix.hidden = !data.prefix;
+      setText(h.text, nav.name);
+      setAttr(h.title, 'aria-label', nav.name + ', ' + t('navPick'));
+      setAttr(h.title, 'aria-controls', 'mdc-picker');
+      setAttr(h.title, 'title', t('navPick'));
+      [
+        [h.prev, nav.prev, 'navPrev'],
+        [h.next, nav.next, 'navNext'],
+      ].forEach(([btn, target, key]) => {
+        btn.disabled = !target;
+        const label = t(key, { name: target ? target.name : '' }).replace(/[:\s]+$/, '');
+        setAttr(btn, 'aria-label', label);
+        setAttr(btn, 'title', label);
+        btn.dataset.md = target ? String(target.matchday) : '';
+      });
+      h.today.hidden = nav.isCurrent;
+      setAttr(h.today, 'title', t('navCurrentTitle', { name: nav.currentName }));
+      setAttr(h.today, 'aria-label', t('navCurrentTitle', { name: nav.currentName }));
+      h.bar.classList.toggle('on', !!(data.loading || data.pending));
+      // A button that just got disabled or hidden would drop the keyboard focus.
+      if (active && head.contains(active) && (active.disabled || active.hidden)) h.title.focus();
     }
 
     _renderMatches(base, today, force) {
       const data = this._collectMatches(base);
-      const head = this._el.matchesHead;
-      head.hidden = !this._config.show_header;
+      this._renderHead(base, data);
+      const list = this._el.list;
+      // Another matchday on its way: the previous list stays (dimmed) until it is there.
+      list.classList.toggle('loading', !!data.pending);
+      setAttr(list, 'aria-busy', data.pending || data.loading ? 'true' : 'false');
+      if (data.pending) return;
+      if (data.error) {
+        const key = [data.identity, 'error', data.error, base.lang].join('|');
+        if (this._structKey !== key) {
+          list.innerHTML = '<div class="block">' + retryHtml(base.t('loadError'), data.error, 'matchday', null, base.t) + '</div>';
+          this._structKey = key;
+          this._fps = new Map();
+          this._matchById = new Map();
+        }
+        return;
+      }
       if (data.unavailable) {
-        head.innerHTML = headHtml(ICON_GRID, this._teamMode() ? this._config.team : this._competition().name || '');
-        this._el.list.innerHTML = '<div class="block msg">' + escHtml(base.t('unavailable')) + '</div>';
+        list.innerHTML = '<div class="block msg">' + escHtml(base.t('unavailable')) + '</div>';
         this._structKey = null;
         this._matchById = new Map();
         return;
       }
-      head.innerHTML = headHtml(ICON_GRID, data.heading || '');
       const matches = data.matches;
       const structKey = [data.identity, today, base.lang, matches.map((m) => m.matchID).join(',')].join('|');
       if (!force && structKey === this._structKey) {
@@ -1351,12 +2052,14 @@
       this._fps = new Map();
       this._matchById = new Map();
       this._code = data.code;
+      this._other = !!data.other;
       if (!matches.length) {
         const text = this._teamMode() ? base.t('noTeamMatches', { team: this._config.team }) : base.t('noMatches');
         this._el.list.innerHTML = '<div class="block msg">' + escHtml(text) + '</div>';
         return;
       }
-      const openId = storageGet('sessionStorage', this._openKey());
+      // The opened match of another matchday is only kept in memory.
+      const openId = this._other ? this._openOther : storageGet('sessionStorage', this._openKey());
       let html = '';
       groupByDay(matches, base.tz).forEach((g) => {
         html += '<div class="day-header">' + escHtml(dayHeaderText(g.items[0].matchDateTimeUTC, g.key, today, base)) + '</div><div class="block">';
@@ -1364,12 +2067,13 @@
           const id = String(m.matchID);
           const ctx = this._matchCtx(base, m, data.code);
           const open = openId === id;
+          const status = this._detailStatus(data.code, m, this._other);
           this._matchById.set(id, m);
-          this._fps.set(id, JSON.stringify(m));
+          this._fps.set(id, JSON.stringify(m) + '|' + status);
           html +=
             rowHtml(m, ctx, open) +
             '<div class="zone' + (open ? ' open' : '') + '" data-zone="' + escHtml(id) + '"' + (open ? ' data-built="1"' : '') +
-            '><div class="zone-inner">' + (open ? zoneContentHtml(m, ctx) : '') + '</div></div>';
+            '><div class="zone-inner">' + (open ? this._zoneHtml(m, ctx, status) : '') + '</div></div>';
         });
         html += '</div>';
       });
@@ -1377,9 +2081,11 @@
     }
 
     _patch(base, data, matches) {
+      const other = !!data.other;
       matches.forEach((m) => {
         const id = String(m.matchID);
-        const fp = JSON.stringify(m);
+        const status = this._detailStatus(data.code, m, other);
+        const fp = JSON.stringify(m) + '|' + status;
         const old = this._matchById.get(id);
         this._matchById.set(id, m);
         if (this._fps.get(id) === fp) return;
@@ -1413,7 +2119,7 @@
         const zone = this._el.list.querySelector('.zone[data-zone="' + CSS.escape(id) + '"]');
         if (zone && zone.dataset.built) {
           const inner = zone.querySelector('.zone-inner');
-          const html = zoneContentHtml(m, ctx);
+          const html = this._zoneHtml(m, ctx, status);
           if (inner.innerHTML !== html) inner.innerHTML = html;
         }
       });
@@ -1432,7 +2138,11 @@
       }
       pane.hidden = false;
       const st = this._hass.states[entity];
-      const key = [entity, base.lang, this._active].join('|');
+      // The table is always the current one: next to another matchday its heading says so,
+      // its live markers belong to the current matchday.
+      const nav = this._nav;
+      const note = nav && !nav.isCurrent ? base.t('tableAsOf', { name: nav.currentName }) : '';
+      const key = [entity, base.lang, this._active, note].join('|');
       if (!force && this._tableKey === key && this._tableState === st) return;
       this._tableKey = key;
       this._tableState = st;
@@ -1453,7 +2163,8 @@
       head.innerHTML = headHtml(
         ICON_TABLE,
         base.t('table'),
-        live ? '<span class="head-live"><span class="live-dot"></span>' + escHtml(base.t('live')) + '</span>' : '',
+        (note ? '<span class="head-note">· ' + escHtml(note) + '</span>' : '') +
+          (live ? '<span class="head-live"><span class="live-dot"></span>' + escHtml(base.t('live')) + '</span>' : ''),
       );
       const ctx = Object.assign({}, base, { zones, namePref: namePreference(this._config.names, code) });
       this._el.table.innerHTML = tableHtml(rows, ctx);
@@ -1472,13 +2183,80 @@
         this._select(Number(chip.dataset.index));
         return;
       }
+      const item = target.closest('.pk-item');
+      if (item) {
+        this._closePicker(true);
+        this._goTo(Number(item.dataset.md));
+        return;
+      }
+      const step = target.closest('.nav-prev, .nav-next');
+      if (step) {
+        if (!step.disabled && step.dataset.md) this._goTo(Number(step.dataset.md));
+        return;
+      }
+      if (target.closest('.nav-title')) {
+        if (this._pickerOpen) this._closePicker(false);
+        else this._openPicker();
+        return;
+      }
+      if (target.closest('.nav-today')) {
+        this._goTo(null);
+        return;
+      }
+      const retry = target.closest('.retry');
+      if (retry) {
+        this._retry(retry.dataset.kind, retry.dataset.id);
+        return;
+      }
       const row = target.closest('.row');
       if (row) this._toggle(row.dataset.id);
     }
 
     _onKey(ev) {
+      const el = ev.target instanceof Element ? ev.target : null;
+      if (!el) return;
+      if (this._pickerOpen && el.closest('.picker')) {
+        const items = Array.from(this._el.picker.querySelectorAll('.pk-item'));
+        const cur = el.closest('.pk-item');
+        const i = pickerIndex(ev.key, items.indexOf(cur), items.length);
+        if (i != null) {
+          ev.preventDefault();
+          items[i].focus();
+        } else if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          if (cur) {
+            this._closePicker(true);
+            this._goTo(Number(cur.dataset.md));
+          }
+        } else if (ev.key === 'Escape') {
+          ev.preventDefault();
+          ev.stopPropagation();
+          this._closePicker(true);
+        } else if (ev.key === 'Tab') {
+          // Back to the heading; the Tab then continues from there.
+          this._closePicker(true);
+        }
+        return;
+      }
+      if (ev.key === 'Escape' && this._pickerOpen) {
+        ev.stopPropagation();
+        this._closePicker(true);
+        return;
+      }
+      if (el.closest('.nav-title') && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+        ev.preventDefault();
+        this._openPicker();
+        return;
+      }
+      if (el.closest('.nav, .nav-today') && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) {
+        ev.preventDefault();
+        const nav = this._nav;
+        const target = nav && (ev.key === 'ArrowLeft' ? nav.prev : nav.next);
+        if (target) this._goTo(target.matchday);
+        return;
+      }
       if (ev.key !== 'Enter' && ev.key !== ' ') return;
-      const row = ev.target instanceof Element ? ev.target.closest('.row') : null;
+      const row = el.closest('.row');
       if (!row) return;
       ev.preventDefault();
       this._toggle(row.dataset.id);
@@ -1487,6 +2265,10 @@
     _select(index) {
       if (!(index >= 0) || index === this._active) return;
       this._active = index;
+      // Another competition starts at its current matchday.
+      this._shown = null;
+      this._openOther = null;
+      this._closePicker(false);
       storageSet('localStorage', 'active:' + this._storeKey(), this._config.competitions[index].entity);
       this._render(true);
     }
@@ -1504,7 +2286,8 @@
           if (r) r.setAttribute('aria-expanded', 'false');
         }
       });
-      storageSet('sessionStorage', this._openKey(), willOpen ? id : null);
+      if (this._other) this._openOther = willOpen ? id : null;
+      else storageSet('sessionStorage', this._openKey(), willOpen ? id : null);
       const row = list.querySelector('.row[data-id="' + CSS.escape(id) + '"]');
       if (row) row.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       if (!willOpen) {
@@ -1513,8 +2296,9 @@
       }
       const m = this._matchById.get(id);
       if (m) {
+        if (this._other) this._loadDetails(this._code, m);
         const ctx = this._matchCtx(this._baseCtx(), m, this._code);
-        zone.querySelector('.zone-inner').innerHTML = zoneContentHtml(m, ctx);
+        zone.querySelector('.zone-inner').innerHTML = this._zoneHtml(m, ctx, this._detailStatus(this._code, m, this._other));
         zone.dataset.built = '1';
       }
       zone.classList.add('open');
@@ -1540,6 +2324,8 @@
           this._render(true);
           return;
         }
+        // Another matchday: refetches it (and an opened match) once the cache ran out.
+        if (this._shown != null) this._refreshView();
         this._matchById.forEach((m, id) => {
           if (m.status !== 'pre') return;
           const el = this._el.list.querySelector('.row[data-id="' + CSS.escape(id) + '"] .c-countdown');
@@ -1567,6 +2353,7 @@
       show_legend: 'Legende anzeigen',
       show_header: 'Überschriften anzeigen',
       show_espn_link: 'ESPN-Link anzeigen',
+      navigation: 'Spieltag-Navigation',
       compact: 'Kompakt',
       layout: 'Anordnung',
       names: 'Vereinsnamen',
@@ -1581,6 +2368,7 @@
       show_legend: 'Show legend',
       show_header: 'Show headings',
       show_espn_link: 'Show ESPN link',
+      navigation: 'Matchday navigation',
       compact: 'Compact',
       layout: 'Layout',
       names: 'Team names',
@@ -1599,6 +2387,7 @@
           { name: 'show_legend', selector: { boolean: {} } },
           { name: 'show_header', selector: { boolean: {} } },
           { name: 'show_espn_link', selector: { boolean: {} } },
+          { name: 'navigation', selector: { boolean: {} } },
           { name: 'compact', selector: { boolean: {} } },
         ],
       },
@@ -1674,14 +2463,14 @@
         this.appendChild(this._form);
         this._multi = multi;
       }
-      const defaults = { show_table: true, show_legend: true, show_header: true, show_espn_link: true, compact: false, layout: 'auto', names: 'auto' };
+      const defaults = { show_table: true, show_legend: true, show_header: true, show_espn_link: true, navigation: true, compact: false, layout: 'auto', names: 'auto' };
       this._form.hass = this._hass;
       this._form.schema = editorSchema(multi, lang);
       this._form.data = Object.assign({}, defaults, this._config);
     }
 
     _changed(value) {
-      const defaults = { show_table: true, show_legend: true, show_header: true, show_espn_link: true, compact: false, layout: 'auto', names: 'auto' };
+      const defaults = { show_table: true, show_legend: true, show_header: true, show_espn_link: true, navigation: true, compact: false, layout: 'auto', names: 'auto' };
       const config = Object.assign({}, this._config, value);
       Object.keys(config).forEach((k) => {
         if (config[k] === '' || config[k] == null || (k in defaults && config[k] === defaults[k] && !(k in this._config))) delete config[k];
@@ -1748,6 +2537,24 @@
       defaultZones,
       legendItems,
       formatDiff,
+      matchdayList,
+      currentMatchdayOf,
+      navState,
+      shownMatchday,
+      pickerIndex,
+      matchdayDates,
+      matchdayCacheKey,
+      detailsCacheKey,
+      cacheTtl,
+      needsFetch,
+      remoteLoad,
+      errorText,
+      mapMatchdayResponse,
+      mapDetailsResponse,
+      withDetails,
+      CACHE_TTL_OPEN,
+      CACHE_TTL_LIVE,
+      CACHE_TTL_RETRY,
       normalizeConfig,
       competitionIndex,
       stubConfig,
@@ -1756,6 +2563,8 @@
       shootoutHtml,
       zoneContentHtml,
       tableHtml,
+      pickerHtml,
+      navHeadHtml,
       editorSchema,
     };
   }

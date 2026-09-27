@@ -1,11 +1,15 @@
 // Dev harness: renders <matchday-card> with a mocked `hass` object (no Home Assistant needed).
 import { FIXTURE_FILES, SCENARIOS } from './scenarios.js';
+import { createConnection } from './mock-connection.js';
 
 const params = new URLSearchParams(location.search);
 const name = params.get('scenario') || 'overview';
 const theme = params.get('theme') || 'dark';
 const lang = params.get('lang') || 'de';
 const width = params.get('w');
+// Simulated latency of the integration's actions (ms), overriding the scenario.
+const latency = params.has('latency') ? Number(params.get('latency')) : null;
+const detailsLatency = params.has('dlatency') ? Number(params.get('dlatency')) : null;
 
 document.body.classList.add(theme);
 if (params.has('shot')) document.body.classList.add('shot');
@@ -35,6 +39,11 @@ if (scenario.now) {
 
 await import('../dist/matchday-card.js');
 
+const mock = Object.assign({}, scenario.mock);
+if (latency != null) mock.latency = latency;
+if (detailsLatency != null) mock.detailsLatency = detailsLatency;
+const connection = createConnection({ fixtures, getStates: () => scenario.states, options: mock });
+
 function makeHass(states) {
   return {
     states,
@@ -42,6 +51,7 @@ function makeHass(states) {
     locale: { language: lang, number_format: 'language', time_format: 'language', time_zone: 'server' },
     config: { time_zone: 'Europe/Berlin' },
     themes: { darkMode: theme === 'dark' },
+    connection,
   };
 }
 
@@ -64,6 +74,7 @@ for (const c of scenario.cards) {
 // For live-update experiments from the console / Playwright:
 //   __update(states => { states['sensor.x'].attributes.matches[0].live_score = '1:0'; })
 window.__cards = cards;
+window.__calls = connection.calls;
 window.__update = (mutate) => {
   const next = { ...scenario.states };
   mutate(next);

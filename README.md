@@ -2,7 +2,8 @@
 
 Lovelace card for the [Matchday](https://github.com/nuggie/ha-matchday) integration: the current matchday of a
 football competition with live scores, goal scorers, cards, substitutions, stats and line-ups, plus the live table
-with coloured zones. Several competitions fit into one card with chips to switch between them.
+with coloured zones. Several competitions fit into one card with chips to switch between them, and you can browse
+through all matchdays of the season.
 
 > **Status:** early development, not yet published.
 
@@ -22,6 +23,12 @@ with coloured zones. Several competitions fit into one card with chips to switch
 - **Live table:** position, crest, team, played, won, drawn, lost, goals, goal difference, points, live marker with the
   team's current score. Coloured zones with legend; defaults for Bundesliga, 2. Bundesliga, Premier League and the UEFA
   league phase, overridable per competition. Short team names on narrow screens.
+- **Matchday navigation:** `‹ 4. Spieltag ›` in the heading browses back and forth, a tap on the title lists all
+  matchdays (cup rounds) of the season with their dates, "Current" leads back. Other matchdays are loaded on demand
+  from the integration and kept in memory (finished ones for good, others for 15 minutes); the details of a match
+  (substitutions, stats, line-ups) load when it is opened. The table stays the current one and says so ("as of
+  4. Spieltag") next to another matchday. Keyboard: arrow keys on the heading, arrow keys/Home/End/Enter/Esc in the
+  list. Needs Matchday **0.4.0** or later; with older versions the card works as before without navigation.
 - **Competition chips:** switch between competitions inside the card (the choice is remembered per browser), with a
   live dot on every competition that has a running match.
 - **Team mode:** the next and last matches of one team across all configured competitions.
@@ -32,8 +39,20 @@ with coloured zones. Several competitions fit into one card with chips to switch
 | --- | --- | --- |
 | ![Live matchday on a phone](docs/live-mobile.png) | ![Penalty shoot-out](docs/pokal-shootout-live-mobile.png) | ![Team mode](docs/team-mobile.png) |
 
+| Previous matchday with match details | Choosing a matchday |
+| --- | --- |
+| ![An earlier matchday on a phone](docs/nav-back-mobile.png) | ![List of all matchdays](docs/nav-picker-mobile.png) |
+
+![Earlier matchday next to the current table](docs/nav-back-desktop.png)
+
 ![Four competitions, dark theme](docs/overview-desktop.png)
 ![Light theme](docs/overview-light-desktop.png)
+
+## Requirements
+
+- The [Matchday](https://github.com/nuggie/ha-matchday) integration. **0.4.0 or later** for the matchday navigation
+  (sensor attribute `matchdays`, actions `matchday.get_matchday` and `matchday.get_match_details`); 0.3.0 works
+  without it.
 
 ## Installation
 
@@ -100,6 +119,7 @@ competitions:
 | `show_legend` | `true` | Show the zone legend. |
 | `show_header` | `true` | Show the headings ("4. Spieltag", "Tabelle"). |
 | `show_espn_link` | `true` | Link to the ESPN match centre in the match details. |
+| `navigation` | `true` | Browse through the matchdays (needs Matchday 0.4.0 and `show_header`). The card always opens at the current matchday; switching the competition goes back to its current matchday. |
 | `compact` | `false` | Lower match rows, table without won/drawn/lost. |
 | `layout` | `auto` | `auto` (side by side from 760 px card width), `stacked` or `columns`. |
 | `names` | `auto` | Team names: `auto` (full names for Premier League and UEFA competitions, short names otherwise), `short` or `full`. |
@@ -144,6 +164,10 @@ No build step: `dist/matchday-card.js` is the source.
   mocked `hass` object; the scenarios (`dev/scenarios.js`) use real sensor attributes (`dev/fixtures/`) and the
   ha-matchday replay of a recorded live evening at six points in time (before kick-off, first half, half-time, second
   half, stoppage time, full time). Parameters: `theme=dark|light`, `lang=de|en`, `w=<card width>`.
+  `dev/mock-connection.js` plays the integration's actions for the navigation from recorded answers
+  (`dev/fixtures/get_matchday.json`, `get_match_details.json`, `matchdays.json`, written by
+  `dev/tools/make_nav_fixtures.py` with the integration's own merge code); `latency=<ms>` / `dlatency=<ms>` set the
+  simulated duration, the `nav-error` / `nav-details-error` scenarios fail once, `legacy` has no navigation.
 - **Screenshots:** `node dev/snap.mjs` (Playwright; set `PLAYWRIGHT_MODULE` if it is not installed globally) writes
   desktop and phone screenshots of all scenarios to `dev/shots/`; `--docs` refreshes the images of this README.
 
