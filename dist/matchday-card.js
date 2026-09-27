@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.1.1';
   const CARD_TAG = 'matchday-card';
   const EDITOR_TAG = 'matchday-card-editor';
   const STORAGE_PREFIX = 'matchday-card:';
@@ -1157,7 +1157,14 @@
     }
 
     getGridOptions() {
-      return { columns: 12, min_columns: 6 };
+      // With a table the card lays matchday and table out side by side, so it takes the
+      // full width of the section (a column_span 2 section has 24 grid columns).
+      const withTable =
+        this._config &&
+        this._config.show_table &&
+        !this._teamMode() &&
+        this._config.competitions.some((c) => c.table_entity);
+      return withTable ? { columns: 'full', min_columns: 6 } : { columns: 12, min_columns: 6 };
     }
 
     connectedCallback() {
