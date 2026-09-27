@@ -1,0 +1,12 @@
+{
+  "name": "matchday-card",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lovelace card for the Matchday integration (no build step: dist/matchday-card.js is the source).",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "serve": "node dev/serve.mjs",
+    "snap": "node dev/snap.mjs"
+  }
+}
