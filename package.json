@@ -1,6 +1,6 @@
 {
   "name": "matchday-card",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Lovelace card for the Matchday integration (no build step: dist/matchday-card.js is the source).",
   "license": "MIT",

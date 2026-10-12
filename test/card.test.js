@@ -628,3 +628,56 @@ test('details of a match that has not started: empty fields, no error', () => {
   assert.equal(card.withDetails(m, d).status, 'pre');
   assert.match(card.zoneContentHtml(card.withDetails(m, d), ctx({ code: 'bl1' })), /Noch keine Ereignisse/);
 });
+
+// --- two-legged ties (integration >= 0.6.0) ------------------------------------
+
+const ko = load('sensor.matchday_uefa_champions_league_spieltag').attributes.matches;
+const sporting = byId(ko, 401862584); // Sporting - Bodø 5:0 a.e.t., first leg 0:3
+
+test('tieOf takes only well-formed aggregates', () => {
+  assert.deepEqual(card.tieOf(sporting), { firstLeg: '0:3', score: '5:3', advances: 'team1' });
+  assert.equal(card.tieOf({ aggregate: null }), null);
+  assert.equal(card.tieOf({ aggregate: [] }), null);
+  assert.equal(card.tieOf({ aggregate: { first_leg: '0-3', score: 5, advances: 'home' } }), null);
+  assert.deepEqual(card.tieOf({ aggregate: { first_leg: null, score: '2:1', advances: null } }), { firstLeg: null, score: '2:1', advances: null });
+});
+
+test('tieLine: first leg before kick-off, aggregate from kick-off on', () => {
+  assert.equal(card.tieLine(sporting, t), 'Gesamt 5:3');
+  const pre = Object.assign({}, sporting, { status: 'pre', live_score: null, aggregate: { first_leg: '0:3', score: '0:3', advances: null } });
+  assert.equal(card.tieLine(pre, t), 'Hinspiel 0:3');
+  const live = Object.assign({}, sporting, { status: 'live', aggregate: { first_leg: '0:3', score: '2:3', advances: null } });
+  assert.equal(card.tieLine(live, card.translator('en')), 'Agg. 2:3');
+  assert.equal(card.tieLine(byId(bl, 83183), t), '');
+});
+
+test('centerHtml adds the tie line under the score and the kick-off', () => {
+  assert.match(card.centerHtml(sporting, ctx()), /c-agg">Gesamt 5:3</);
+  assert.match(card.centerHtml(sporting, ctx()), /n\.V\./);
+  const pre = Object.assign({}, sporting, { status: 'pre', live_score: null, aggregate: { first_leg: '0:3', score: '0:3', advances: null } });
+  assert.match(card.centerHtml(pre, ctx()), /c-agg">Hinspiel 0:3</);
+  assert.doesNotMatch(card.centerHtml(byId(bl, 83183), ctx()), /c-agg/);
+});
+
+test('the side that went through gets the tick, the other one not', () => {
+  assert.match(card.advanceIcon(sporting, 'team1'), /adv-chip/);
+  assert.equal(card.advanceIcon(sporting, 'team2'), '');
+  const open = Object.assign({}, sporting, { aggregate: { first_leg: '0:3', score: '1:3', advances: null } });
+  assert.equal(card.advanceIcon(open, 'team1'), '');
+});
+
+test('the details of a second leg start with first leg, aggregate and who went through', () => {
+  const html = card.zoneContentHtml(sporting, ctx({ code: 'ucl' }));
+  assert.match(html, /class="tie"><span>Hinspiel <b>0:3<\/b><\/span><span>Gesamt <b>5:3<\/b><\/span><span>Sporting CP weiter<\/span><\/div>/);
+  const pre = Object.assign({}, sporting, { status: 'pre', aggregate: { first_leg: '0:3', score: '0:3', advances: null } });
+  assert.doesNotMatch(card.tieHtml(pre, t), /Gesamt/);
+  assert.equal(card.tieHtml(byId(bl, 83183), t), '');
+});
+
+test('the table belongs to the league phase', () => {
+  assert.equal(card.tableInPhase(undefined), true, 'OpenLigaDB leagues, older integration');
+  assert.equal(card.tableInPhase(null), true);
+  assert.equal(card.tableInPhase('league-phase'), true);
+  assert.equal(card.tableInPhase('round-of-16'), false);
+  assert.equal(card.tableInPhase('first-round'), false, 'qualifying');
+});

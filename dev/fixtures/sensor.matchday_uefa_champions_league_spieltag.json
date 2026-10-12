@@ -1,0 +1,942 @@
+{
+ "entity_id": "sensor.matchday_uefa_champions_league_spieltag",
+ "state": "Achtelfinale · Rückspiel",
+ "attributes": {
+  "matches": [
+   {
+    "matchID": 401862584,
+    "matchDateTime": "2026-03-17T18:45:00",
+    "matchDateTimeUTC": "2026-03-17T17:45:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Sporting CP",
+     "shortName": "SCP",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2250.png"
+    },
+    "team2": {
+     "teamName": "Bodo/Glimt",
+     "shortName": "BODO",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/2980.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862584",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "2250",
+    "espn_away_team_id": "2980",
+    "minute": "120'+5'",
+    "live_score": "5:0",
+    "scorers": [
+     {
+      "name": "Gonçalo Inácio",
+      "minute": "34'",
+      "sortKey": 2022.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Pedro Gonçalves",
+      "minute": "61'",
+      "sortKey": 3635.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Luis Suárez",
+      "minute": "78'",
+      "sortKey": 4669.0,
+      "team": "team1",
+      "type": "penalty"
+     },
+     {
+      "name": "Maxi Araújo",
+      "minute": "92'",
+      "sortKey": 5483.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Rafael Nel",
+      "minute": "120'+1'",
+      "sortKey": 7200.0,
+      "team": "team1",
+      "type": "regular"
+     }
+    ],
+    "cards": [
+     {
+      "name": "Ole Didrik Blomberg",
+      "minute": "6'",
+      "sortKey": 303.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Morten Hjulmand",
+      "minute": "46'",
+      "sortKey": 2751.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Kasper Høgh",
+      "minute": "68'",
+      "sortKey": 4039.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Iván Fresneda",
+      "minute": "74'",
+      "sortKey": 4386.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Nuno Santos",
+      "minute": "104'",
+      "sortKey": 6212.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Daniel Bassi",
+      "minute": "105'+3'",
+      "sortKey": 6300.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Ulrik Saltnes",
+      "minute": "118'",
+      "sortKey": 7064.0,
+      "team": "team2",
+      "type": "yellow"
+     }
+    ],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "0:3",
+     "score": "5:3",
+     "advances": "team1"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862581,
+    "matchDateTime": "2026-03-17T21:00:00",
+    "matchDateTimeUTC": "2026-03-17T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Arsenal",
+     "shortName": "ARS",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png"
+    },
+    "team2": {
+     "teamName": "Bayer Leverkusen",
+     "shortName": "B04",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/131.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862581",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "359",
+    "espn_away_team_id": "131",
+    "minute": "90'+5'",
+    "live_score": "2:0",
+    "scorers": [
+     {
+      "name": "Eberechi Eze",
+      "minute": "36'",
+      "sortKey": 2136.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Declan Rice",
+      "minute": "63'",
+      "sortKey": 3767.0,
+      "team": "team1",
+      "type": "regular"
+     }
+    ],
+    "cards": [
+     {
+      "name": "Exequiel Palacios",
+      "minute": "46'",
+      "sortKey": 2756.0,
+      "team": "team2",
+      "type": "yellow"
+     }
+    ],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "1:1",
+     "score": "3:1",
+     "advances": "team1"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862647,
+    "matchDateTime": "2026-03-17T21:00:00",
+    "matchDateTimeUTC": "2026-03-17T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Manchester City",
+     "shortName": "MNC",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png"
+    },
+    "team2": {
+     "teamName": "Real Madrid",
+     "shortName": "RMA",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/86.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862647",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "382",
+    "espn_away_team_id": "86",
+    "minute": "90'+5'",
+    "live_score": "1:2",
+    "scorers": [
+     {
+      "name": "Vinícius Júnior",
+      "minute": "22'",
+      "sortKey": 1278.0,
+      "team": "team2",
+      "type": "penalty"
+     },
+     {
+      "name": "Erling Haaland",
+      "minute": "41'",
+      "sortKey": 2440.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Vinícius Júnior",
+      "minute": "90'+3'",
+      "sortKey": 5400.0,
+      "team": "team2",
+      "type": "regular"
+     }
+    ],
+    "cards": [
+     {
+      "name": "Bernardo Silva",
+      "minute": "20'",
+      "sortKey": 1190.0,
+      "team": "team1",
+      "type": "red"
+     },
+     {
+      "name": "",
+      "minute": "25'",
+      "sortKey": 1442.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Abdukodir Khusanov",
+      "minute": "45'+4'",
+      "sortKey": 2700.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Kylian Mbappé",
+      "minute": "76'",
+      "sortKey": 4540.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Trent Alexander-Arnold",
+      "minute": "80'",
+      "sortKey": 4764.0,
+      "team": "team2",
+      "type": "yellow"
+     }
+    ],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "0:3",
+     "score": "1:5",
+     "advances": "team2"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862648,
+    "matchDateTime": "2026-03-17T21:00:00",
+    "matchDateTimeUTC": "2026-03-17T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Chelsea",
+     "shortName": "CHE",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png"
+    },
+    "team2": {
+     "teamName": "Paris Saint-Germain",
+     "shortName": "PSG",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862648",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "363",
+    "espn_away_team_id": "160",
+    "minute": "90'",
+    "live_score": "0:3",
+    "scorers": [
+     {
+      "name": "Khvicha Kvaratskhelia",
+      "minute": "6'",
+      "sortKey": 340.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Bradley Barcola",
+      "minute": "14'",
+      "sortKey": 836.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Senny Mayulu",
+      "minute": "62'",
+      "sortKey": 3661.0,
+      "team": "team2",
+      "type": "regular"
+     }
+    ],
+    "cards": [],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "2:5",
+     "score": "2:8",
+     "advances": "team2"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862582,
+    "matchDateTime": "2026-03-18T18:45:00",
+    "matchDateTimeUTC": "2026-03-18T17:45:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Barcelona",
+     "shortName": "BAR",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/83.png"
+    },
+    "team2": {
+     "teamName": "Newcastle United",
+     "shortName": "NEW",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862582",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "83",
+    "espn_away_team_id": "361",
+    "minute": "90'+1'",
+    "live_score": "7:2",
+    "scorers": [
+     {
+      "name": "Raphinha",
+      "minute": "6'",
+      "sortKey": 310.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Anthony Elanga",
+      "minute": "15'",
+      "sortKey": 847.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Marc Bernal",
+      "minute": "18'",
+      "sortKey": 1069.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Anthony Elanga",
+      "minute": "28'",
+      "sortKey": 1639.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Lamine Yamal",
+      "minute": "45'+7'",
+      "sortKey": 2700.0,
+      "team": "team1",
+      "type": "penalty"
+     },
+     {
+      "name": "Fermín López",
+      "minute": "51'",
+      "sortKey": 3058.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Robert Lewandowski",
+      "minute": "56'",
+      "sortKey": 3314.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Robert Lewandowski",
+      "minute": "61'",
+      "sortKey": 3620.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Raphinha",
+      "minute": "72'",
+      "sortKey": 4306.0,
+      "team": "team1",
+      "type": "regular"
+     }
+    ],
+    "cards": [
+     {
+      "name": "Joelinton",
+      "minute": "17'",
+      "sortKey": 1016.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Pau Cubarsí",
+      "minute": "44'",
+      "sortKey": 2616.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Kieran Trippier",
+      "minute": "45'+5'",
+      "sortKey": 2700.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Joe Willock",
+      "minute": "60'",
+      "sortKey": 3541.0,
+      "team": "team2",
+      "type": "yellow"
+     }
+    ],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "1:1",
+     "score": "8:3",
+     "advances": "team1"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862580,
+    "matchDateTime": "2026-03-18T21:00:00",
+    "matchDateTimeUTC": "2026-03-18T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Tottenham Hotspur",
+     "shortName": "TOT",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/367.png"
+    },
+    "team2": {
+     "teamName": "Atlético Madrid",
+     "shortName": "ATM",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862580",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "367",
+    "espn_away_team_id": "1068",
+    "minute": "90'+6'",
+    "live_score": "3:2",
+    "scorers": [
+     {
+      "name": "Randal Kolo Muani",
+      "minute": "30'",
+      "sortKey": 1743.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Julián Álvarez",
+      "minute": "47'",
+      "sortKey": 2807.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Xavi Simons",
+      "minute": "52'",
+      "sortKey": 3088.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Dávid Hancko",
+      "minute": "75'",
+      "sortKey": 4466.0,
+      "team": "team2",
+      "type": "regular"
+     },
+     {
+      "name": "Xavi Simons",
+      "minute": "90'",
+      "sortKey": 5399.0,
+      "team": "team1",
+      "type": "penalty"
+     }
+    ],
+    "cards": [
+     {
+      "name": "Matteo Ruggeri",
+      "minute": "28'",
+      "sortKey": 1624.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "",
+      "minute": "47'",
+      "sortKey": 2820.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Ademola Lookman",
+      "minute": "56'",
+      "sortKey": 3312.0,
+      "team": "team2",
+      "type": "yellow"
+     },
+     {
+      "name": "Pedro Porro",
+      "minute": "57'",
+      "sortKey": 3400.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Guglielmo Vicario",
+      "minute": "58'",
+      "sortKey": 3469.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Cristian Romero",
+      "minute": "70'",
+      "sortKey": 4141.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Destiny Udogie",
+      "minute": "72'",
+      "sortKey": 4293.0,
+      "team": "team1",
+      "type": "yellow"
+     },
+     {
+      "name": "Alexander Sørloth",
+      "minute": "90'+2'",
+      "sortKey": 5400.0,
+      "team": "team2",
+      "type": "yellow"
+     }
+    ],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "2:5",
+     "score": "5:7",
+     "advances": "team2"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862642,
+    "matchDateTime": "2026-03-18T21:00:00",
+    "matchDateTimeUTC": "2026-03-18T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Bayern Munich",
+     "shortName": "MUN",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png"
+    },
+    "team2": {
+     "teamName": "Atalanta",
+     "shortName": "ATA",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/105.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862642",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "132",
+    "espn_away_team_id": "105",
+    "minute": "90'+4'",
+    "live_score": "4:1",
+    "scorers": [
+     {
+      "name": "Harry Kane",
+      "minute": "25'",
+      "sortKey": 1495.0,
+      "team": "team1",
+      "type": "penalty"
+     },
+     {
+      "name": "Harry Kane",
+      "minute": "54'",
+      "sortKey": 3235.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Lennart Karl",
+      "minute": "56'",
+      "sortKey": 3352.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Luis Díaz",
+      "minute": "70'",
+      "sortKey": 4156.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Lazar Samardzic",
+      "minute": "85'",
+      "sortKey": 5081.0,
+      "team": "team2",
+      "type": "regular"
+     }
+    ],
+    "cards": [],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "6:1",
+     "score": "10:2",
+     "advances": "team1"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   },
+   {
+    "matchID": 401862668,
+    "matchDateTime": "2026-03-18T21:00:00",
+    "matchDateTimeUTC": "2026-03-18T20:00:00Z",
+    "matchIsFinished": true,
+    "matchResults": [],
+    "team1": {
+     "teamName": "Liverpool",
+     "shortName": "LIV",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png"
+    },
+    "team2": {
+     "teamName": "Galatasaray",
+     "shortName": "GAL",
+     "teamIconUrl": "https://a.espncdn.com/i/teamlogos/soccer/500/432.png"
+    },
+    "oldb_score": null,
+    "espn_id": "401862668",
+    "espn_slug": "uefa.champions",
+    "espn_home_team_id": "364",
+    "espn_away_team_id": "432",
+    "minute": "90'+6'",
+    "live_score": "4:0",
+    "scorers": [
+     {
+      "name": "Dominik Szoboszlai",
+      "minute": "25'",
+      "sortKey": 1490.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Hugo Ekitike",
+      "minute": "51'",
+      "sortKey": 3056.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Ryan Gravenberch",
+      "minute": "53'",
+      "sortKey": 3171.0,
+      "team": "team1",
+      "type": "regular"
+     },
+     {
+      "name": "Mohamed Salah",
+      "minute": "62'",
+      "sortKey": 3669.0,
+      "team": "team1",
+      "type": "regular"
+     }
+    ],
+    "cards": [],
+    "status": "post",
+    "phase": "round-of-16",
+    "leg": 2,
+    "aggregate": {
+     "first_leg": "0:1",
+     "score": "4:1",
+     "advances": "team1"
+    },
+    "substitutions": [],
+    "stats": null,
+    "lineups": null,
+    "ht_score": null,
+    "pso": null
+   }
+  ],
+  "matchday": 20,
+  "season": 2025,
+  "competition": "ucl",
+  "matchdays": [
+   {
+    "matchday": 1,
+    "name": "1. Qualifikationsrunde · Hinspiel",
+    "phase": "first-round",
+    "first_kickoff": "2025-07-08T15:00:00Z",
+    "last_kickoff": "2025-07-09T18:45:00Z"
+   },
+   {
+    "matchday": 2,
+    "name": "1. Qualifikationsrunde · Rückspiel",
+    "phase": "first-round",
+    "first_kickoff": "2025-07-15T15:00:00Z",
+    "last_kickoff": "2025-07-16T18:45:00Z"
+   },
+   {
+    "matchday": 3,
+    "name": "2. Qualifikationsrunde · Hinspiel",
+    "phase": "second-round",
+    "first_kickoff": "2025-07-22T15:00:00Z",
+    "last_kickoff": "2025-07-23T18:45:00Z"
+   },
+   {
+    "matchday": 4,
+    "name": "2. Qualifikationsrunde · Rückspiel",
+    "phase": "second-round",
+    "first_kickoff": "2025-07-29T15:00:00Z",
+    "last_kickoff": "2025-07-30T19:00:00Z"
+   },
+   {
+    "matchday": 5,
+    "name": "3. Qualifikationsrunde · Hinspiel",
+    "phase": "third-round",
+    "first_kickoff": "2025-08-05T17:00:00Z",
+    "last_kickoff": "2025-08-06T19:00:00Z"
+   },
+   {
+    "matchday": 6,
+    "name": "3. Qualifikationsrunde · Rückspiel",
+    "phase": "third-round",
+    "first_kickoff": "2025-08-12T16:00:00Z",
+    "last_kickoff": "2025-08-12T19:00:00Z"
+   },
+   {
+    "matchday": 7,
+    "name": "Qualifikation Play-offs · Hinspiel",
+    "phase": "playoff-round",
+    "first_kickoff": "2025-08-19T19:00:00Z",
+    "last_kickoff": "2025-08-20T19:00:00Z"
+   },
+   {
+    "matchday": 8,
+    "name": "Qualifikation Play-offs · Rückspiel",
+    "phase": "playoff-round",
+    "first_kickoff": "2025-08-26T16:45:00Z",
+    "last_kickoff": "2025-08-27T19:00:00Z"
+   },
+   {
+    "matchday": 9,
+    "name": "1. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-09-16T16:45:00Z",
+    "last_kickoff": "2025-09-18T19:00:00Z"
+   },
+   {
+    "matchday": 10,
+    "name": "2. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-09-30T16:45:00Z",
+    "last_kickoff": "2025-10-01T19:00:00Z"
+   },
+   {
+    "matchday": 11,
+    "name": "3. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-10-21T16:45:00Z",
+    "last_kickoff": "2025-10-22T19:00:00Z"
+   },
+   {
+    "matchday": 12,
+    "name": "4. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-11-04T17:45:00Z",
+    "last_kickoff": "2025-11-05T20:00:00Z"
+   },
+   {
+    "matchday": 13,
+    "name": "5. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-11-25T17:45:00Z",
+    "last_kickoff": "2025-11-26T20:00:00Z"
+   },
+   {
+    "matchday": 14,
+    "name": "6. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2025-12-09T15:30:00Z",
+    "last_kickoff": "2025-12-10T20:00:00Z"
+   },
+   {
+    "matchday": 15,
+    "name": "7. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2026-01-20T15:30:00Z",
+    "last_kickoff": "2026-01-21T20:00:00Z"
+   },
+   {
+    "matchday": 16,
+    "name": "8. Spieltag",
+    "phase": "league-phase",
+    "first_kickoff": "2026-01-28T20:00:00Z",
+    "last_kickoff": "2026-01-28T20:00:00Z"
+   },
+   {
+    "matchday": 17,
+    "name": "K.-o.-Play-offs · Hinspiel",
+    "phase": "knockout-round-playoffs",
+    "first_kickoff": "2026-02-17T17:45:00Z",
+    "last_kickoff": "2026-02-18T20:00:00Z"
+   },
+   {
+    "matchday": 18,
+    "name": "K.-o.-Play-offs · Rückspiel",
+    "phase": "knockout-round-playoffs",
+    "first_kickoff": "2026-02-24T17:45:00Z",
+    "last_kickoff": "2026-02-25T20:00:00Z"
+   },
+   {
+    "matchday": 19,
+    "name": "Achtelfinale · Hinspiel",
+    "phase": "round-of-16",
+    "first_kickoff": "2026-03-10T17:45:00Z",
+    "last_kickoff": "2026-03-11T20:00:00Z"
+   },
+   {
+    "matchday": 20,
+    "name": "Achtelfinale · Rückspiel",
+    "phase": "round-of-16",
+    "first_kickoff": "2026-03-17T17:45:00Z",
+    "last_kickoff": "2026-03-18T20:00:00Z"
+   },
+   {
+    "matchday": 21,
+    "name": "Viertelfinale · Hinspiel",
+    "phase": "quarterfinals",
+    "first_kickoff": "2026-04-07T19:00:00Z",
+    "last_kickoff": "2026-04-08T19:00:00Z"
+   },
+   {
+    "matchday": 22,
+    "name": "Viertelfinale · Rückspiel",
+    "phase": "quarterfinals",
+    "first_kickoff": "2026-04-14T19:00:00Z",
+    "last_kickoff": "2026-04-15T19:00:00Z"
+   },
+   {
+    "matchday": 23,
+    "name": "Halbfinale · Hinspiel",
+    "phase": "semifinals",
+    "first_kickoff": "2026-04-28T19:00:00Z",
+    "last_kickoff": "2026-04-29T19:00:00Z"
+   },
+   {
+    "matchday": 24,
+    "name": "Halbfinale · Rückspiel",
+    "phase": "semifinals",
+    "first_kickoff": "2026-05-05T19:00:00Z",
+    "last_kickoff": "2026-05-06T19:00:00Z"
+   },
+   {
+    "matchday": 25,
+    "name": "Finale",
+    "phase": "final",
+    "first_kickoff": "2026-05-30T16:00:00Z",
+    "last_kickoff": "2026-05-30T16:00:00Z"
+   }
+  ],
+  "phase": "round-of-16",
+  "friendly_name": "Matchday UEFA Champions League Spieltag"
+ }
+}

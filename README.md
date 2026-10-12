@@ -31,6 +31,11 @@ through all matchdays of the season.
   list. Cup rounds that are not drawn yet can be selected and say so. Needs Matchday **0.4.0** or later; with older
   versions (or while the integration does not know the season's rounds yet) the card works as before without
   navigation.
+- **Two-legged ties (UEFA):** a second leg shows the first leg's score before kick-off ("Hinspiel 0:1") and the
+  aggregate from kick-off on ("Gesamt 4:1", live while it runs); the side that went through gets a tick, the match
+  details start with first leg, aggregate and "Liverpool weiter". The table is shown in the league phase only, not
+  in qualifying and knockout rounds. Needs Matchday **0.6.0** or later (match field `aggregate`, sensor attribute
+  `phase`).
 - **Competition chips:** switch between competitions inside the card (the choice is remembered per browser), with a
   live dot on every competition that has a running match.
 - **Team mode:** the next and last matches of one team across all configured competitions.
@@ -47,6 +52,8 @@ through all matchdays of the season.
 
 ![Earlier matchday next to the current table](docs/nav-back-desktop.png)
 
+![Champions League round of 16, second legs with aggregate](docs/uefa-ko-desktop.png)
+
 ![Four competitions, dark theme](docs/overview-desktop.png)
 ![Light theme](docs/overview-light-desktop.png)
 
@@ -54,7 +61,7 @@ through all matchdays of the season.
 
 - The [Matchday](https://github.com/nuggie/ha-matchday) integration. **0.4.0 or later** for the matchday navigation
   (sensor attribute `matchdays`, actions `matchday.get_matchday` and `matchday.get_match_details`); 0.3.0 works
-  without it.
+  without it. **0.6.0 or later** for two-legged ties and the UEFA knockout rounds.
 
 ## Installation
 

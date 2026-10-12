@@ -14,6 +14,8 @@ export const FIXTURE_FILES = [
   'sensor.matchday_premier_league_spieltag',
   'sensor.matchday_premier_league_tabelle',
   'sensor.matchday_dfb_pokal_spieltag',
+  'sensor.matchday_uefa_champions_league_spieltag',
+  'sensor.matchday_uefa_champions_league_tabelle',
   'replay-nations-20260926',
   'matchdays',
   'get_matchday',
@@ -110,7 +112,52 @@ function liveBundesliga(F) {
   return states;
 }
 
+// Champions League round-of-16 second legs 2025/26 (dev/tools/make_uefa_fixtures.py),
+// replayed at `now`: matches that kicked off more than two hours ago stay finished, running
+// ones are rewound to their minute, later ones are not started yet. The aggregate follows.
+const UCL = {
+  name: 'Champions League',
+  entity: 'sensor.matchday_uefa_champions_league_spieltag',
+  table_entity: 'sensor.matchday_uefa_champions_league_tabelle',
+};
+
+function retie(m) {
+  const a = m.aggregate;
+  if (!a || !a.first_leg) return;
+  const [f1, f2] = a.first_leg.split(':').map(Number);
+  if (m.status === 'pre') {
+    Object.assign(a, { score: a.first_leg, advances: null });
+    return;
+  }
+  const [h, w] = m.live_score.split(':').map(Number);
+  a.score = f1 + h + ':' + (f2 + w);
+  if (m.status !== 'post') a.advances = null;
+}
+
+function uefaKnockout(F, now) {
+  const states = realStates(F);
+  const nowMs = Date.parse(now);
+  states[UCL.entity].attributes.matches.forEach((m) => {
+    const minutes = Math.floor((nowMs - Date.parse(m.matchDateTimeUTC)) / 60000);
+    if (minutes >= 120) return;
+    if (minutes >= 0) {
+      // 45 minutes, 17 minutes of half time (incl. stoppage), then the second half.
+      if (minutes > 45 && minutes <= 62) rewind(m, "45'", 'ht');
+      else rewind(m, (minutes > 62 ? Math.min(90, minutes - 17) : minutes) + "'", 'live');
+      Object.assign(m, { pso: null, stats: null });
+    } else {
+      Object.assign(m, { status: 'pre', minute: null, live_score: null, ht_score: null, scorers: [], cards: [], substitutions: [], stats: null, lineups: null, pso: null, matchIsFinished: false });
+    }
+    retie(m);
+  });
+  return states;
+}
+
 export const SCENARIOS = {
+  'uefa-ko'(F) {
+    const now = '2026-03-18T19:10:00Z';
+    return { now, states: uefaKnockout(F, now), cards: [{ config: { competitions: [UCL] } }] };
+  },
   overview(F) {
     return { now: '2026-09-27T12:00:00Z', states: realStates(F), cards: [{ config: { competitions: FOUR } }] };
   },

@@ -7,6 +7,10 @@
  * all rounds; other matchdays than the current one come from the actions
  * matchday.get_matchday / matchday.get_match_details and are cached in memory.
  *
+ * Two-legged ties (integration >= 0.6.0, UEFA): a second leg shows the first leg's score
+ * before kick-off and the aggregate afterwards, the side that went through gets a tick.
+ * The table is shown in the league phase only (sensor attribute `phase`).
+ *
  * Rendering: the card only touches the DOM when one of its own entities changed.
  * Same match list as before -> only the changed matches are patched (no image reloads,
  * the open ticker stays open); otherwise the match list is rebuilt.
@@ -14,7 +18,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const CARD_TAG = 'matchday-card';
   const EDITOR_TAG = 'matchday-card-editor';
   const STORAGE_PREFIX = 'matchday-card:';
@@ -113,6 +117,9 @@
       detailsError: 'Details konnten nicht geladen werden.',
       retry: 'Erneut versuchen',
       tableAsOf: 'Stand {name}',
+      firstLeg: 'Hinspiel',
+      aggregate: 'Gesamt',
+      advances: '{team} weiter',
       zones: {
         cl: 'CL',
         el: 'EL',
@@ -171,6 +178,9 @@
       detailsError: 'Could not load the match details.',
       retry: 'Try again',
       tableAsOf: 'as of {name}',
+      firstLeg: '1st leg',
+      aggregate: 'Agg.',
+      advances: '{team} through',
       zones: {
         cl: 'Champions League',
         el: 'Europa League',
@@ -200,6 +210,7 @@
   const RED_ICON = '<span class="ic ic-red"></span>';
   const YELLOWRED_ICON = '<span class="ic ic-yellowred"></span>';
   const SUB_ICON = '<span class="ic ic-sub">⇄</span>';
+  const ADVANCE_ICON = '<span class="adv-chip" aria-hidden="true">✓</span>';
 
   // ---------------------------------------------------------------------------
   // Pure helpers (no DOM access, exported for the unit tests)
@@ -509,6 +520,41 @@
     const n = toInt(d);
     if (n == null) return '';
     return n > 0 ? '+' + n : String(n);
+  }
+
+  // Two-legged ties (integration >= 0.6.0) ---------------------------------------------
+
+  // `aggregate` of a second leg: first leg and aggregate from the match's team1/team2
+  // side ("1:2"), `advances` "team1"/"team2" once decided. null if there is nothing usable.
+  function tieOf(m) {
+    const a = m && m.aggregate;
+    if (!a || typeof a !== 'object' || Array.isArray(a)) return null;
+    const score = (v) => (typeof v === 'string' && /^\d+:\d+$/.test(v) ? v : null);
+    const tie = {
+      firstLeg: score(a.first_leg),
+      score: score(a.score),
+      advances: a.advances === 'team1' || a.advances === 'team2' ? a.advances : null,
+    };
+    return tie.firstLeg || tie.score || tie.advances ? tie : null;
+  }
+
+  // Line under the score: before kick-off the first leg, from kick-off the aggregate.
+  function tieLine(m, t) {
+    const tie = tieOf(m);
+    if (!tie) return '';
+    if (m.status === 'pre') return tie.firstLeg ? t('firstLeg') + ' ' + tie.firstLeg : '';
+    return tie.score ? t('aggregate') + ' ' + tie.score : '';
+  }
+
+  function advanceIcon(m, teamKey) {
+    const tie = tieOf(m);
+    return tie && tie.advances === teamKey ? ADVANCE_ICON : '';
+  }
+
+  // The table belongs to a league phase: hidden for qualifying and knockout rounds.
+  // Sensors without `phase` (OpenLigaDB leagues, integration < 0.6.0) always show it.
+  function tableInPhase(phase) {
+    return phase == null || phase === '' || phase === 'league-phase';
   }
 
   // Matchday navigation ----------------------------------------------------------
@@ -893,7 +939,9 @@
   function centerHtml(m, ctx) {
     const t = ctx.t;
     const badge = ctx.badge ? '<div class="c-badge">' + escHtml(ctx.badge) + '</div>' : '';
-    const stack = (inner) => '<div class="c-stack">' + badge + inner + '</div>';
+    const tie = tieLine(m, t);
+    const tieHtml = tie ? '<div class="c-agg">' + escHtml(tie) + '</div>' : '';
+    const stack = (inner) => '<div class="c-stack">' + badge + inner + tieHtml + '</div>';
     if (m.status === 'pre') {
       const cd = countdownText(m.matchDateTimeUTC, ctx.now) || '';
       return stack(
@@ -920,14 +968,19 @@
     const inner =
       '<div class="c-post">' + escHtml(finalScoreOf(m)) + htHtml + '</div>' +
       (extra ? '<div class="c-extra">' + escHtml(extra) + '</div>' : '');
-    return badge || extra ? stack(inner) : inner;
+    return badge || extra || tie ? stack(inner) : inner;
+  }
+
+  // Send-offs and, in a decided tie, the tick of the side that went through.
+  function sideIcons(m, teamKey) {
+    return sendOffIcons(m, teamKey) + advanceIcon(m, teamKey);
   }
 
   function nameCellHtml(team, m, teamKey, side, ctx) {
     return (
       '<span class="name name-' + side + '"><span class="name-text">' +
       escHtml(teamDisplayName(team, ctx.namePref)) +
-      '</span><span class="sendoff">' + sendOffIcons(m, teamKey) + '</span></span>'
+      '</span><span class="sendoff">' + sideIcons(m, teamKey) + '</span></span>'
     );
   }
 
@@ -1066,6 +1119,17 @@
     return info ? 'https://www.espn.com/soccer/schedule/_/league/' + info.espn : null;
   }
 
+  // First leg, aggregate and who went through, at the top of a second leg's details.
+  function tieHtml(m, t) {
+    const tie = tieOf(m);
+    if (!tie) return '';
+    const parts = [];
+    if (tie.firstLeg) parts.push(escHtml(t('firstLeg')) + ' <b>' + escHtml(tie.firstLeg) + '</b>');
+    if (tie.score && m.status !== 'pre') parts.push(escHtml(t('aggregate')) + ' <b>' + escHtml(tie.score) + '</b>');
+    if (tie.advances) parts.push(escHtml(t('advances', { team: teamDisplayName(m[tie.advances], 'full') })));
+    return parts.length ? '<div class="tie">' + parts.map((x) => '<span>' + x + '</span>').join('') + '</div>' : '';
+  }
+
   // lead: optional HTML above the ticker (e.g. a failed details request).
   function zoneContentHtml(m, ctx, lead) {
     const t = ctx.t;
@@ -1080,7 +1144,7 @@
     if (url) {
       html += '<div class="zone-footer"><a class="espn-link" href="' + escHtml(url) + '" target="_blank" rel="noopener">' + escHtml(t('espn')) + '</a></div>';
     }
-    return '<div class="zone-pad">' + (lead || '') + html + '</div>';
+    return '<div class="zone-pad">' + (lead || '') + tieHtml(m, t) + html + '</div>';
   }
 
   function tableHtml(rows, ctx) {
@@ -1344,6 +1408,10 @@
 .c-score, .c-post { font-size: 16px; font-weight: 800; color: var(--mdc-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .c-sub { font-size: 10px; font-weight: 500; color: var(--mdc-text2); }
 .c-extra { font-size: 10px; font-weight: 600; color: var(--mdc-text2); white-space: nowrap; }
+.c-agg { font-size: 10px; font-weight: 600; color: var(--mdc-text2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.adv-chip { display: inline-block; margin-left: 4px; vertical-align: middle; font-size: 12px; font-weight: 800; line-height: 1; color: var(--matchday-advance-color, var(--success-color, #43a047)); }
+.tie { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; padding: 2px 0 10px; font-size: 12px; color: var(--mdc-text2); font-variant-numeric: tabular-nums; }
+.tie b { color: var(--mdc-text); font-weight: 700; }
 .c-live { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--mdc-live); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--mdc-live); display: inline-block; flex: 0 0 auto; animation: mdc-pulse 1.4s ease-in-out infinite; }
 @keyframes mdc-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -1631,7 +1699,10 @@
 
     _tableEntity() {
       if (this._teamMode() || !this._config.show_table) return null;
-      return this._competition().table_entity;
+      const comp = this._competition();
+      if (!comp.table_entity) return null;
+      const st = this._hass && this._hass.states ? this._hass.states[comp.entity] : null;
+      return tableInPhase(st && st.attributes ? st.attributes.phase : null) ? comp.table_entity : null;
     }
 
     _openKey() {
@@ -2113,7 +2184,7 @@
             const text = teamDisplayName(team, ctx.namePref);
             const textEl = cell.querySelector('.name-text');
             if (textEl.textContent !== text) textEl.textContent = text;
-            const so = sendOffIcons(m, key);
+            const so = sideIcons(m, key);
             const soEl = cell.querySelector('.sendoff');
             if (soEl.innerHTML !== so) soEl.innerHTML = so;
             const logo = row.querySelector(logoSel);
@@ -2542,6 +2613,11 @@
       defaultZones,
       legendItems,
       formatDiff,
+      tieOf,
+      tieLine,
+      advanceIcon,
+      tableInPhase,
+      tieHtml,
       matchdayList,
       currentMatchdayOf,
       navState,
