@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
   const CARD_TAG = 'matchday-card';
   const EDITOR_TAG = 'matchday-card-editor';
   const STORAGE_PREFIX = 'matchday-card:';
@@ -1486,7 +1486,7 @@
 .c-pts { font-weight: 700; color: var(--mdc-strong); }
 .tr.th .c-pts { color: var(--mdc-text2); }
 .c-goals { color: var(--mdc-text2); }
-.crest { width: 22px; height: 22px; object-fit: contain; display: block; }
+.crest { width: 22px; height: 22px; background: var(--mdc-logo-bg); border-radius: 50%; padding: 2px; box-sizing: border-box; object-fit: contain; display: block; }
 .n-full, .n-short { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .n-short { display: none; }
 .t-live { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--mdc-live); }

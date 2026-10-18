@@ -162,7 +162,7 @@ The card follows the theme (`--primary-text-color`, `--secondary-text-color`, `-
 | `--matchday-block-background` | near black in dark themes, card background in light themes |
 | `--matchday-detail-background` | background of the opened match details |
 | `--matchday-score-color` | white in dark themes, primary text colour otherwise |
-| `--matchday-logo-background` | `#e8e8e8` (circle behind the crests in the match rows) |
+| `--matchday-logo-background` | `#e8e8e8` (circle behind the crests in the match rows and the table) |
 
 ## Development
 
