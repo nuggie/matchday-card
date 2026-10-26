@@ -4,7 +4,7 @@
 // exported at six points in time). Live states of the leagues are derived from the real data.
 // Matchday navigation (integration >= 0.4.0): the `matchdays` attribute and the answers of the
 // actions come from fixtures/matchdays.json, get_matchday.json and get_match_details.json
-// (dev/tools/make_nav_fixtures.py); dev/mock-connection.js plays the integration.
+// (built with the integration's merge code); dev/mock-connection.js plays the integration.
 
 export const FIXTURE_FILES = [
   'sensor.matchday_bundesliga_spieltag',
@@ -112,7 +112,7 @@ function liveBundesliga(F) {
   return states;
 }
 
-// Champions League round-of-16 second legs 2025/26 (dev/tools/make_uefa_fixtures.py),
+// Champions League round-of-16 second legs 2025/26 (recorded from ESPN),
 // replayed at `now`: matches that kicked off more than two hours ago stay finished, running
 // ones are rewound to their minute, later ones are not started yet. The aggregate follows.
 const UCL = {

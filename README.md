@@ -176,8 +176,8 @@ No build step: `dist/matchday-card.js` is the source.
   ha-matchday replay of a recorded live evening at six points in time (before kick-off, first half, half-time, second
   half, stoppage time, full time). Parameters: `theme=dark|light`, `lang=de|en`, `w=<card width>`.
   `dev/mock-connection.js` plays the integration's actions for the navigation from recorded answers
-  (`dev/fixtures/get_matchday.json`, `get_match_details.json`, `matchdays.json`, written by
-  `dev/tools/make_nav_fixtures.py` with the integration's own merge code); `latency=<ms>` / `dlatency=<ms>` set the
+  (`dev/fixtures/get_matchday.json`, `get_match_details.json`, `matchdays.json`, built with the
+  integration's own merge code); `latency=<ms>` / `dlatency=<ms>` set the
   simulated duration, the `nav-error` / `nav-details-error` scenarios fail once, `legacy` has no navigation.
 - **Screenshots:** `node dev/snap.mjs` (Playwright; set `PLAYWRIGHT_MODULE` if it is not installed globally) writes
   desktop and phone screenshots of all scenarios to `dev/shots/`; `--docs` refreshes the images of this README.
