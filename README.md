@@ -5,9 +5,9 @@ football competition with live scores, goal scorers, cards, substitutions, stats
 with coloured zones. Several competitions fit into one card with chips to switch between them, and you can browse
 through all matchdays of the season.
 
-> **Status:** early development, not yet published.
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=nuggie&repository=matchday-card&category=plugin)
 
-![Matchday and live table, desktop](docs/live-desktop.png)
+![Matchday and live table, desktop](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/live-desktop.png)
 
 ## Features
 
@@ -15,8 +15,9 @@ through all matchdays of the season.
   minute including stoppage time, half-time score, half-time marker, full-time score, red cards next to the team name.
   Running matches are marked and flash when the score changes.
 - **Match details** on tap (one match open at a time): ticker with goals (running score in its own column, penalties
-  and own goals marked), cards and substitutions in chronological order (stoppage time sorted correctly), possession,
-  shots, corners, line-ups and a link to the ESPN match centre.
+  and own goals marked), cards and substitutions in chronological order (stoppage time sorted correctly; a card ESPN
+  has no player for, e.g. for the bench, reads "Yellow card"), possession, shots, corners, line-ups (with Matchday
+  **0.8.0** already before kick-off, as soon as ESPN publishes them) and a link to the ESPN match centre.
 - **Extra time and penalty shoot-outs:** "AET"/"n.V." and the shoot-out result ("n.E. 2:4") in the match row; the
   shoot-out kicks are listed in their own block with a running tally instead of counting as goals. A shoot-out in
   progress shows its current tally ("i.E. 1:3").
@@ -44,24 +45,25 @@ through all matchdays of the season.
 
 | Phone, live | Penalty shoot-out in progress | Team mode |
 | --- | --- | --- |
-| ![Live matchday on a phone](docs/live-mobile.png) | ![Penalty shoot-out](docs/pokal-shootout-live-mobile.png) | ![Team mode](docs/team-mobile.png) |
+| ![Live matchday on a phone](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/live-mobile.png) | ![Penalty shoot-out](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/pokal-shootout-live-mobile.png) | ![Team mode](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/team-mobile.png) |
 
 | Previous matchday with match details | Choosing a matchday |
 | --- | --- |
-| ![An earlier matchday on a phone](docs/nav-back-mobile.png) | ![List of all matchdays](docs/nav-picker-mobile.png) |
+| ![An earlier matchday on a phone](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/nav-back-mobile.png) | ![List of all matchdays](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/nav-picker-mobile.png) |
 
-![Earlier matchday next to the current table](docs/nav-back-desktop.png)
+![Earlier matchday next to the current table](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/nav-back-desktop.png)
 
-![Champions League round of 16, second legs with aggregate](docs/uefa-ko-desktop.png)
+![Champions League round of 16, second legs with aggregate](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/uefa-ko-desktop.png)
 
-![Four competitions, dark theme](docs/overview-desktop.png)
-![Light theme](docs/overview-light-desktop.png)
+![Four competitions, dark theme](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/overview-desktop.png)
+![Light theme](https://raw.githubusercontent.com/nuggie/matchday-card/main/docs/overview-light-desktop.png)
 
 ## Requirements
 
 - The [Matchday](https://github.com/nuggie/ha-matchday) integration. **0.4.0 or later** for the matchday navigation
   (sensor attribute `matchdays`, actions `matchday.get_matchday` and `matchday.get_match_details`); 0.3.0 works
-  without it. **0.6.0 or later** for two-legged ties and the UEFA knockout rounds.
+  without it. **0.6.0 or later** for two-legged ties and the UEFA knockout rounds, **0.8.0 or later** for line-ups
+  before kick-off.
 
 ## Installation
 
