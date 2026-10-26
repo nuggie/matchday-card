@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.3.1';
+  const VERSION = '0.3.2';
   const CARD_TAG = 'matchday-card';
   const EDITOR_TAG = 'matchday-card-editor';
   const STORAGE_PREFIX = 'matchday-card:';
@@ -97,6 +97,9 @@
       subFor: 'für',
       penSuffix: ' (E)',
       ogSuffix: ' (ET)',
+      cardYellow: 'Gelbe Karte',
+      cardRed: 'Rote Karte',
+      cardYellowRed: 'Gelb-Rote Karte',
       colTeam: 'Verein',
       colPlayed: 'Sp',
       colWon: 'S',
@@ -158,6 +161,9 @@
       subFor: 'for',
       penSuffix: ' (P)',
       ogSuffix: ' (OG)',
+      cardYellow: 'Yellow card',
+      cardRed: 'Red card',
+      cardYellowRed: 'Second yellow',
       colTeam: 'Team',
       colPlayed: 'P',
       colWon: 'W',
@@ -1022,7 +1028,13 @@
     });
     (m.cards || []).forEach((c) => {
       const icon = c.type === 'red' ? RED_ICON : c.type === 'yellowred' ? YELLOWRED_ICON : YELLOW_ICON;
-      events.push({ team: c.team, sortKey: c.sortKey, minute: c.minute, icon, label: escHtml(c.name), cls: 'tick-card' });
+      // ESPN sends some bookings without a player (bench, staff): name the card instead.
+      const label = c.name
+        ? escHtml(c.name)
+        : '<span class="tick-anon">' +
+          escHtml(t(c.type === 'red' ? 'cardRed' : c.type === 'yellowred' ? 'cardYellowRed' : 'cardYellow')) +
+          '</span>';
+      events.push({ team: c.team, sortKey: c.sortKey, minute: c.minute, icon, label, cls: 'tick-card' });
     });
     (m.substitutions || []).forEach((x) => {
       events.push({
@@ -1440,6 +1452,7 @@
 .tick-cell.away { flex-direction: row-reverse; text-align: right; }
 .tick-goal { color: var(--mdc-text); font-weight: 600; }
 .tick-card { color: var(--mdc-text2); }
+.tick-anon { font-style: italic; }
 .tick-sub { color: var(--mdc-text2); opacity: 0.9; }
 .tick-mid { display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--mdc-strong); font-size: 12px; white-space: nowrap; }
 .tick-icon { flex: 0 0 14px; display: flex; align-items: center; justify-content: center; }

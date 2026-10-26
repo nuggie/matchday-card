@@ -180,6 +180,23 @@ test('the ticker lists shoot-out kicks in their own block, not as goals', () => 
   assert.deepEqual(events.map((e) => e.score), ['0:1', '1:1']);
 });
 
+test('a booking without a player names the card instead of an empty label', () => {
+  // Saarbrücken - Hertha 66': ESPN sent the yellow card without a name.
+  const cards = card.buildTickerEvents(byId(pokal, 81849), t).filter((e) => e.cls === 'tick-card');
+  const anon = cards.find((e) => e.minute === "66'");
+  assert.equal(anon.label, '<span class="tick-anon">Gelbe Karte</span>');
+  assert.ok(cards.filter((e) => e !== anon).every((e) => e.label && !e.label.includes('tick-anon')));
+  const m = { team1: {}, team2: {}, cards: [
+    { name: '', minute: "90'", team: 'team1', type: 'red' },
+    { name: '', minute: "91'", team: 'team2', type: 'yellowred' },
+  ] };
+  assert.deepEqual(
+    card.buildTickerEvents(m, card.translator('en')).map((e) => e.label),
+    ['<span class="tick-anon">Red card</span>', '<span class="tick-anon">Second yellow</span>'],
+  );
+  assert.match(card.zoneContentHtml(byId(pokal, 81849), ctx()), /<div class="tick-label"><span class="tick-anon">Gelbe Karte<\/span><\/div>/);
+});
+
 // --- scores -----------------------------------------------------------------------
 
 test('runningScores counts own goals for the other team and checks the final score', () => {
